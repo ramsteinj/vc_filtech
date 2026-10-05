@@ -4,6 +4,12 @@ djangorestframework>=3.15
 djangorestframework-simplejwt>=5.3
 django-cors-headers>=4.4
 psycopg[binary]>=3.2
+cryptography>=43
+
+# LLM providers (specs/07)
+anthropic>=1.0
+openai>=3.0
+google-genai>=2.0
 
 # Dev / test
 pytest>=8

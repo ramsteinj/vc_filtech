@@ -12,12 +12,12 @@
 - **완료 기준**: `migrate` 후 `runserver` / `npm run dev` 동작, 빈 대시보드 렌더. ✅ 2026-10-05
 
 ## M1. 인증 · 기본 관리자 · LLM 설정 게이트
-- [ ] 로그인/리프레시/로그아웃/me, 역할 권한 클래스
-- [ ] `ensure_admin` + post_migrate (admin / admin1234!)
-- [ ] `/api/system/status`, 프론트 전역 가드, 관리자 상단 우측 로그인
-- [ ] LLM 모델(Provider/ModelOption/Settings), Fernet 암호화, 설정 화면, 연결 테스트
-- [ ] 사용자 관리(입찰담당자 추가)
-- **완료 기준**: 새 DB에서 앱 접속 → 관리자 로그인 페이지로 이동 → 로그인 → API Key 화면 → 저장·테스트 성공 → 대시보드 접근 가능. 입찰담당자 계정 생성·로그인.
+- [x] 로그인/리프레시/로그아웃/me, 역할 권한 클래스
+- [x] `ensure_admin` + post_migrate (admin / admin1234!)
+- [x] `/api/system/status`, 프론트 전역 가드, 관리자 상단 우측 로그인
+- [x] LLM 모델(Provider/ModelOption/Settings), Fernet 암호화, 설정 화면, 연결 테스트
+- [x] 사용자 관리(입찰담당자 추가)
+- **완료 기준**: 새 DB에서 앱 접속 → 관리자 로그인 페이지로 이동 → 로그인 → API Key 화면 → 저장·테스트 성공 → 대시보드 접근 가능. 입찰담당자 계정 생성·로그인. ✅ 2026-10-06 (헤드리스 Chromium 시나리오 19/19 통과)
 
 ## M2. 문서 파서 · 회사 자료
 - [ ] 파서: TXT/DOCX/PDF/HWP/HWPX/XLS/XLSX, 스캔 PDF 감지

@@ -14,7 +14,7 @@ Prefix `/api`. 권한: 🅰 ADMIN, 🅱 BID_MANAGER 이상(= 로그인 사용자
 
 ## 사용자
 | GET/POST | `/users` | 🅰 | 목록(필터 role, is_active)/생성 |
-| GET/PATCH/DELETE | `/users/{id}` | 🅰 | 삭제는 비활성화 |
+| GET/PATCH/DELETE | `/users/{id}` | 🅰 | 삭제는 비활성화. `?hard=true`는 로그인 이력 없는 사용자만 물리 삭제 |
 | POST | `/users/{id}/reset-password` | 🅰 | `{new_password}` |
 
 ## 대시보드

@@ -57,10 +57,16 @@ class LLMResponse:
 | ANTHROPIC | `claude-fable-5-1` | Claude Fable 5.1 | |
 | ANTHROPIC | `claude-sonnet-5-5` | Claude Sonnet 5.5 | |
 | ANTHROPIC | `claude-haiku-4-5-20251001` | Claude Haiku 4.5 | |
-| OPENAI | (구현 시점 공식 문서의 최신 모델 ID로 seed) | | ✅ 1개 |
-| GEMINI | (구현 시점 공식 문서의 최신 모델 ID로 seed) | | ✅ 1개 |
+| OPENAI | `gpt-6-astra` | GPT-6 Astra | ✅ |
+| OPENAI | `gpt-6.1-sol` | GPT-6.1 Sol | |
+| OPENAI | `gpt-6-luna` | GPT-6 Luna | |
+| GEMINI | `gemini-3.8-flash` | Gemini 3.8 Flash | ✅ |
+| GEMINI | `gemini-3.5-flash-lite` | Gemini 3.5 Flash-Lite | |
 
-- 관리자가 모델 ID를 직접 추가/수정할 수 있으므로 OpenAI·Gemini 모델명은 하드코딩하지 말고 seed 데이터로만 둔다. 구현 시 반드시 각 제공자 문서에서 현재 모델 ID를 확인한다.
+- 관리자가 모델 ID를 직접 추가/수정할 수 있으므로 모델명은 하드코딩하지 말고 seed 데이터(`apps/llm/defaults.py`)로만 둔다.
+- OpenAI·Gemini 모델 ID는 2026-10-06 공식 문서(developers.openai.com/api/docs/models, ai.google.dev/gemini-api/docs/models) 기준. OpenAI는 `gpt-6-astra`가 공식 권장 기본, Gemini는 stable 중 최상위인 `gemini-3.8-flash`.
+- `supports_pdf_input` seed: Claude 전 모델·Gemini = true (공식 문서에 PDF 입력 예시 있음), OpenAI = false (모델 목록 문서에 PDF 입력 명시 없음 — 관리자가 확인 후 변경).
+- `max_output_tokens`(모델 옵션)는 공식 수치를 확인한 경우에만 채우고, 비어 있으면 `LLMSettings.max_output_tokens`를 그대로 사용한다.
 - `LLMSettings` 초기값: `active_provider=ANTHROPIC`, `active_model=claude-opus-5-5`, `temperature=0.2`, `max_output_tokens=8192`, `timeout_sec=180`, `max_retries=2`. (Key가 없으므로 `llm_configured=false`)
 - 작업별 override 기본값: `evaluation.judge`·`bid.extract` temperature 0.0, `draft.*` 0.3.
 

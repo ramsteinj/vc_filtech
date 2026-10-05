@@ -16,6 +16,8 @@ class User(AbstractUser, TimeStampedModel):
     department = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=30, blank=True)
     must_change_password = models.BooleanField(default=False)
+    failed_login_attempts = models.PositiveIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["username"]

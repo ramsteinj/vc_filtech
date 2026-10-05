@@ -13,6 +13,8 @@
 | department | Char(50), blank | |
 | phone | Char(30), blank | |
 | must_change_password | Bool | 기본 관리자 생성 시 true |
+| failed_login_attempts | Int | 연속 로그인 실패 횟수 (성공 시 0) |
+| locked_until | DateTime null | 로그인 잠금 해제 시각 ([03](03-auth-and-access.md) §1) |
 
 - `AUTH_USER_MODEL = "accounts.User"` — **첫 마이그레이션 전에 설정**.
 - `is_admin_role` property: `role == ADMIN or is_superuser`.
@@ -240,7 +242,7 @@ bid(FK), doc_type(`COMPLIANCE_MATRIX`/`BID_CHECKLIST`/`TECHNICAL_QUERY`/`REVIEW_
 provider(unique `OPENAI`/`ANTHROPIC`/`GEMINI`), api_key_encrypted(Binary/Text), api_key_last4(Char 4), base_url(Char blank — 프록시용), is_enabled(Bool), last_verified_at, last_verify_ok(Bool null), last_verify_error(Text).
 
 ### LLMModelOption
-provider, model_id(`claude-opus-5-5`), display_name(`Claude Opus 5.5`), supports_pdf_input(Bool), max_output_tokens(Int), is_default(Bool per provider), is_active, order. 관리자 CRUD.
+provider, model_id(`claude-opus-5-5`), display_name(`Claude Opus 5.5`), supports_pdf_input(Bool), max_output_tokens(Int null — 비어 있으면 LLMSettings 값 사용), is_default(Bool per provider), is_active, order. 관리자 CRUD.
 
 ### LLMSettings (싱글턴)
 active_provider, active_model(FK LLMModelOption), temperature(Float), max_output_tokens(Int), timeout_sec(Int), max_retries(Int), json_mode(Bool), per_task_overrides(JSON: `{"evaluation": {"model": "...", "temperature": 0}}`).

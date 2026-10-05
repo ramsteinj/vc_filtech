@@ -14,6 +14,8 @@ from config.env import (
     parse_database_url,
 )
 
+APP_VERSION = "0.1.0"
+
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 REPO_DIR = BACKEND_DIR.parent
 
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     # Local
     "apps.core",
     "apps.accounts",
+    "apps.llm",
 ]
 
 MIDDLEWARE = [
@@ -113,7 +116,7 @@ MAX_UPLOAD_MB = env_int("MAX_UPLOAD_MB", 50)
 DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_MB * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
-# Used by apps.llm.crypto (Phase 2) to encrypt LLM API keys.
+# Fernet key used by apps.llm.crypto to encrypt LLM API keys.
 FIELD_ENCRYPTION_KEY = env_str("FIELD_ENCRYPTION_KEY", "")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -149,8 +152,15 @@ LOGGING = {
     "formatters": {
         "simple": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"},
     },
+    "filters": {
+        "mask_secrets": {"()": "apps.core.logging.SecretMaskingFilter"},
+    },
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+            "filters": ["mask_secrets"],
+        },
     },
     "root": {"handlers": ["console"], "level": "INFO"},
 }
