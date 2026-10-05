@@ -26,6 +26,54 @@ const routes = [
     component: () => import('@/views/admin/UserAdminView.vue'),
     meta: { requiresAuth: true, admin: true },
   },
+  ...[
+    ['/admin/company', 'admin-company', () => import('@/views/admin/company/CompanyInfoView.vue')],
+    [
+      '/admin/products',
+      'admin-products',
+      () => import('@/views/admin/company/ProductListView.vue'),
+    ],
+    [
+      '/admin/products/:id',
+      'admin-product',
+      () => import('@/views/admin/company/ProductDetailView.vue'),
+    ],
+    [
+      '/admin/test-reports',
+      'admin-test-reports',
+      () => import('@/views/admin/company/TestReportListView.vue'),
+    ],
+    [
+      '/admin/certificates',
+      'admin-certificates',
+      () => import('@/views/admin/company/CertificateListView.vue'),
+    ],
+    [
+      '/admin/delivery-records',
+      'admin-delivery-records',
+      () => import('@/views/admin/company/DeliveryRecordListView.vue'),
+    ],
+    [
+      '/admin/documents',
+      'admin-documents',
+      () => import('@/views/admin/documents/DocumentListView.vue'),
+    ],
+    [
+      '/admin/documents/:id',
+      'admin-document',
+      () => import('@/views/admin/documents/DocumentReviewView.vue'),
+    ],
+    [
+      '/admin/metadata-schemas',
+      'admin-metadata-schemas',
+      () => import('@/views/admin/documents/MetadataSchemaView.vue'),
+    ],
+  ].map(([path, name, component]) => ({
+    path,
+    name,
+    component,
+    meta: { requiresAuth: true, admin: true },
+  })),
   {
     path: '/admin/settings/llm',
     name: 'admin-llm-settings',

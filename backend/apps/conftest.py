@@ -6,6 +6,28 @@ from apps.accounts.models import User
 PASSWORD = "Str0ng-pass!23"
 
 
+@pytest.fixture(autouse=True)
+def media_root(settings, tmp_path):
+    """Uploaded files go to a per-test temp dir."""
+    settings.MEDIA_ROOT = tmp_path / "media"
+
+
+@pytest.fixture
+def inline_jobs(db):
+    """Run background jobs synchronously inside the request."""
+    from apps.core.app_settings import set_setting
+
+    set_setting("jobs.run_inline", True)
+
+
+@pytest.fixture
+def company_data(db):
+    """initial-data/company loaded through the real pipeline (rules only)."""
+    from apps.documents.loader import load_company
+
+    return load_company()
+
+
 @pytest.fixture
 def api_client():
     return APIClient()

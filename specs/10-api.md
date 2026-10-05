@@ -22,9 +22,9 @@ Prefix `/api`. 권한: 🅰 ADMIN, 🅱 BID_MANAGER 이상(= 로그인 사용자
 
 ## 문서 · 메타데이터
 | GET/POST | `/documents` | 🅰(쓰기) 🅱(읽기) | 업로드(multipart: `files[]`, `owner_type`, `category?`) 또는 JSON `{source_text, title, owner_type}` |
-| GET/PATCH/DELETE | `/documents/{id}` | 🅰 | PATCH: category 변경 |
+| GET/PATCH/DELETE | `/documents/{id}` | 🅱(읽기)/🅰 | GET 응답에 `low_confidence_threshold` 포함. PATCH: `{title?, category?, reextract?}` — 분류 변경 시 `category_source=MANUAL` |
 | GET | `/documents/{id}/download` | 🅱 | 원본 파일 |
-| GET | `/documents/{id}/text` | 🅱 | 추출 텍스트(페이지별) |
+| GET | `/documents/{id}/text` | 🅱 | `{pages, page_count, tables}` 추출 텍스트(페이지별)와 표 |
 | POST | `/documents/{id}/reprocess` | 🅰 | `{from_step: parse/classify/extract/map}` → `{job_id}` |
 | GET | `/documents/{id}/mapping-preview` | 🅰 | 도메인 반영 diff |
 | POST | `/documents/{id}/apply` | 🅰 | 도메인 반영 |

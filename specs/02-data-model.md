@@ -40,12 +40,14 @@ seed 기본값 목록은 [07](07-llm-integration.md) §6.
 ### Document
 | 필드 | 타입 | 설명 |
 |---|---|---|
+| title | Char(255), blank | 표시 제목 (텍스트 입력 문서는 필수, 파일은 원본 파일명 사용) |
 | file | FileField | `documents/%Y/%m/<uuid>.<ext>` |
 | original_filename | Char(255) | |
 | file_format | `TXT`/`DOCX`/`DOC`/`HWP`/`HWPX`/`PDF`/`XLS`/`XLSX` | |
 | file_size, sha256 | Int, Char(64) | sha256 중복 업로드 경고 |
 | source_text | Text, blank | "Text로 입력" 시 원문 (파일 없이 생성 가능) |
 | extracted_text | Text | 파서 결과 (페이지 구분자 `\f`) |
+| extracted_tables | JSON list | 파서가 인식한 표 `[{page, rows: [[셀, ...], ...]}]` — 규칙 추출기가 재사용 |
 | page_count | Int, null | |
 | category | FK MetadataSchema(null) | 문서 분류 |
 | category_confidence | Float, null | |
@@ -64,6 +66,7 @@ seed 기본값 목록은 [07](07-llm-integration.md) §6.
 | filename_patterns | JSON list[str] | 정규식. 파일명 기반 1차 분류 |
 | fields | JSON list[FieldDef] | `{key, label, type(str/int/float/date/bool/list/dimension/grade/json), unit?, required, description, example}` |
 | target_model | Char, blank | 추출 후 매핑할 도메인 모델 (`company.Product` 등) |
+| priority | Int | 파일명 규칙 매칭 순서 (작을수록 먼저). 구체적인 분류가 먼저 오도록 seed |
 | is_active | Bool | |
 
 **seed 분류 (code: 이름 → target_model)**
@@ -147,7 +150,7 @@ cert_no(unique), name(ISO 9001 품질경영시스템 인증서), cert_type(`ISO9
 - 계산 필드 `status`: `VALID`/`EXPIRING`(유효기간 ≤ N일, `AppSetting: evaluation.cert_expiring_days`=90)/`EXPIRED` — 기준일은 호출 시 전달(기본 오늘, 판정 시 입찰 마감일).
 
 ### DeliveryRecord (납품실적 행)
-delivered_ym(Char `2023-10` 또는 date), client(발주처), project_name(사업명), item_desc(품목), models(JSON list[str]), products(M2M Product), quantity(JSON: `[{model, qty, unit}]`), amount_krw(BigInt null — 원본에 없음), is_power_plant(Bool), plant_type(`CCPP`/`THERMAL`/`CHP`/`OTHER`), notes(“E12 동급, SUS304 프레임 사양 아님”), source_document.
+delivered_ym(Char `2023-10` 또는 date), client(발주처), project_name(사업명), item_desc(품목), model_nos(JSON list[str] — 원문 모델명. `models`는 Django 모듈명과 충돌해 사용 불가), products(M2M Product), quantity(JSON: `[{model, qty, unit}]`), amount_krw(BigInt null — 원본에 없음), is_power_plant(Bool), plant_type(`CCPP`/`THERMAL`/`CHP`/`OTHER`), notes(“E12 동급, SUS304 프레임 사양 아님”), source_document.
 
 ## 5. bids
 

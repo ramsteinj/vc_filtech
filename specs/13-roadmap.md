@@ -20,13 +20,13 @@
 - **완료 기준**: 새 DB에서 앱 접속 → 관리자 로그인 페이지로 이동 → 로그인 → API Key 화면 → 저장·테스트 성공 → 대시보드 접근 가능. 입찰담당자 계정 생성·로그인. ✅ 2026-10-06 (헤드리스 Chromium 시나리오 19/19 통과)
 
 ## M2. 문서 파서 · 회사 자료
-- [ ] 파서: TXT/DOCX/PDF/HWP/HWPX/XLS/XLSX, 스캔 PDF 감지
-- [ ] Document/MetadataSchema/DocumentMetadata, 분류 규칙, seed 스키마
-- [ ] 회사 자료 규칙 추출기(datasheet/test_report/certificate/delivery_record)
-- [ ] Company/Product/TestReport/Certificate/DeliveryRecord 모델·CRUD API·관리 화면
-- [ ] `load_initial_data --only company`
-- [ ] Job 큐 + `run_jobs`
-- **완료 기준**: [12](12-initial-data.md) §2.2 기대값과 일치(테스트 통과), §5 파서 테스트 통과.
+- [x] 파서: TXT/DOCX/PDF/HWP/HWPX/XLS/XLSX, 스캔 PDF 감지
+- [x] Document/MetadataSchema/DocumentMetadata, 분류 규칙, seed 스키마
+- [x] 회사 자료 규칙 추출기(datasheet/test_report/certificate/delivery_record)
+- [x] Company/Product/TestReport/Certificate/DeliveryRecord 모델·CRUD API·관리 화면
+- [x] `load_initial_data --only company`
+- [x] Job 큐 + `run_jobs`
+- **완료 기준**: [12](12-initial-data.md) §2.2 기대값과 일치(테스트 통과), §5 파서 테스트 통과. ✅ 2026-10-06 (pytest 237개, 브라우저 시나리오 27개 항목 확인)
 
 ## M3. LLM 서비스 · 프롬프트 · 튜닝 설정
 - [ ] providers(anthropic/openai/gemini/fake), `run_task`, 스키마 검증·재시도, LLMCallLog

@@ -14,12 +14,14 @@ Document 생성 (파일 or source_text)
 
 ## 2. 형식별 파서 (`parsers/<fmt>.py`, 공통 인터페이스 `parse(path) -> ParseResult(text, pages:list[str], tables:list, warnings)`)
 
+`tables`는 `Document.extracted_tables`에 저장해 규칙 추출기가 재파싱 없이 사용한다. 표를 지원하는 형식: PDF, DOCX, HWPX, XLS/XLSX(시트 = 표).
+
 | 형식 | 방법 | 비고 |
 |---|---|---|
 | TXT | charset-normalizer로 인코딩 감지(UTF-8, CP949/EUC-KR) | |
 | DOCX | python-docx: 문단 + 표(행은 ` \| ` 구분), 머리글/바닥글 제외 | |
 | DOC | LibreOffice(`soffice --headless --convert-to docx`) 설치 시에만 | 미설치 시 “지원하지 않는 형식” 안내 |
-| PDF | pypdf/pdfplumber, 페이지별 텍스트. 표는 pdfplumber `extract_tables` 시도 | 전체 텍스트 < `extraction.min_text_chars_per_page`(30)×페이지 → **스캔 PDF** 판정 |
+| PDF | pdfplumber, 페이지별 텍스트 + `extract_tables`. **회전된 글자(변환 행렬 b·c ≠ 0)는 워터마크로 보고 제거** — initial-data의 대각선 “SAMPLE · 가상 자료” 워터마크가 본문에 섞이는 것을 확인함 | 전체 텍스트 < `extraction.min_text_chars_per_page`(30)×페이지 → **스캔 PDF** 판정 |
 | HWP 5.0 | **olefile + zlib 자체 구현** (아래 §2.1) | pyhwp 사용 금지(AGPL) |
 | HWPX | zip → `Contents/section*.xml` 의 `hp:p` / `hp:t` 순회, 표는 `hp:tbl/hp:tr/hp:tc` | |
 | XLS | xlrd | 공고 첨부 전용 |
@@ -48,7 +50,7 @@ Document 생성 (파일 or source_text)
 
 ## 3. 문서 분류
 
-1. **경로/파일명 규칙**(`MetadataSchema.filename_patterns`), 예:
+1. **경로/파일명 규칙**(`MetadataSchema.filename_patterns`, `priority` 오름차순으로 첫 매칭), 예:
    - `공고문|공고서|입찰공고` → `bid_notice`
    - `규격서|시방서|사양서(?!.*기술사양서)` → `bid_spec`
    - `명세서|구매내역서|산출내역서|품목` → `bid_item_list`
