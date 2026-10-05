@@ -73,4 +73,4 @@
 | D5 | 백그라운드 작업은 DB 기반 Job 큐 + `run_jobs` 워커 | Redis/Celery 없이 단순 운영 |
 | D6 | 인증은 JWT(SimpleJWT) | SPA와 API 분리 |
 | D7 | 공고 첨부로 XLS/XLSX 허용 | 실제 공고 샘플에 엑셀 명세서 포함 |
-| D8 | DB는 로컬 설치 PostgreSQL 18 사용, docker compose 미사용 | 개발 환경에 PostgreSQL 18이 5432에서 이미 동작 중 (사용자 결정, 2026-10-05) |
+| D8 | DB는 로컬 설치 PostgreSQL 18 사용, docker compose·Dockerfile 등 Docker 미사용 | 개발 환경에 PostgreSQL 18이 5432에서 이미 동작 중 (사용자 결정, 2026-10-05) |

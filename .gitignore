@@ -1,0 +1,21 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+backend/.pytest_media/
+backend/staticfiles/
+
+# Uploaded files
+backend/media/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# Windows download marker files
+*:Zone.Identifier

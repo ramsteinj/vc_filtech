@@ -23,13 +23,15 @@ PostgreSQL  ◀── Job 워커 (python manage.py run_jobs)
 | DRF | 3.15+ |
 | 인증 | djangorestframework-simplejwt |
 | DB 드라이버 | psycopg 3 |
+| CORS | django-cors-headers |
+| 환경 변수 | `.env` 로더·`DATABASE_URL` 파서는 표준 라이브러리로 직접 구현 (`config/env.py`) |
 | DB | PostgreSQL 18 — **로컬 설치 서버 사용** (docker / docker compose 사용 안 함) |
 | 문서 파싱 | pypdf(또는 pdfplumber), python-docx, olefile(HWP 5.0 직접 파싱), zipfile+lxml(HWPX), openpyxl(XLSX), xlrd(XLS), charset-normalizer(TXT) |
 | LLM SDK | `anthropic`, `openai`, `google-genai` |
 | 암호화 | cryptography (Fernet) |
 | PDF 생성 | WeasyPrint (HTML 템플릿 → PDF, Noto Sans KR 폰트 번들) |
 | 테스트 | pytest, pytest-django, factory_boy |
-| Frontend | Vue 3, Vite 5+, Vue Router 4, Pinia, axios, bootstrap@5.0.2, bootstrap-icons |
+| Frontend | Vue 3, Vite 5+, Vue Router 4, Pinia, axios, bootstrap@5.0.2(정확히 고정) + @popperjs/core, bootstrap-icons |
 | Lint | ruff(backend), eslint + prettier(frontend) |
 
 > HWP 파싱에 `pyhwp`(AGPL)는 사용하지 않는다. olefile 기반 자체 추출기를 구현한다 ([06](06-document-processing.md) §2).

@@ -3,12 +3,13 @@
 각 마일스톤 완료 시 체크하고 README의 “기능 현황”을 갱신한다. 마일스톤 하나 = 하나 이상의 PR/커밋 묶음.
 
 ## M0. 프로젝트 골격
-- [ ] 로컬 PostgreSQL 18에 `filtech` 역할·DB 생성([01](01-architecture.md) §4.1), `.env.example`
-- [ ] Django 프로젝트 `backend/config`, settings 분리(base/dev/test), DRF, SimpleJWT, CORS
-- [ ] `accounts.User(AbstractUser)` + `AUTH_USER_MODEL` (첫 migrate 전)
-- [ ] Vue 3 + Vite + Bootstrap 5.0.2 + Router + Pinia + axios, `/api` 프록시
-- [ ] ruff, eslint/prettier, pytest 설정
-- **완료 기준**: `migrate` 후 `runserver` / `npm run dev` 동작, 빈 대시보드 렌더.
+- [x] 로컬 PostgreSQL 18에 `filtech` 역할·DB 생성([01](01-architecture.md) §4.1), `.env.example`
+- [x] Django 프로젝트 `backend/config`, settings 분리(base/dev/test), DRF, SimpleJWT, CORS
+- [x] `accounts.User(AbstractUser)` + `AUTH_USER_MODEL` (첫 migrate 전)
+- [x] Vue 3 + Vite + Bootstrap 5.0.2 + Router + Pinia + axios, `/api` 프록시
+- [x] ruff, eslint/prettier, pytest 설정
+- [x] `core.AppSetting` + seed(post_migrate) — Phase 2 로그인 잠금 설정에 필요해 M0에서 선행
+- **완료 기준**: `migrate` 후 `runserver` / `npm run dev` 동작, 빈 대시보드 렌더. ✅ 2026-10-05
 
 ## M1. 인증 · 기본 관리자 · LLM 설정 게이트
 - [ ] 로그인/리프레시/로그아웃/me, 역할 권한 클래스
@@ -58,7 +59,7 @@
 ## M8. 마무리
 - [ ] 운영 화면(Job, LLM 로그), 에러 처리·토스트, 접근성 점검
 - [ ] README 최종 갱신(설치·운영·백업)
-- [ ] (선택) XLSX 내보내기, 배포용 Dockerfile(backend+frontend build를 Django/nginx로 서빙)
+- [ ] (선택) XLSX 내보내기
 
 ## 향후 과제 (범위 밖)
 - 나라장터 공고 자동 수집 및 신규 공고 알림

@@ -1,0 +1,79 @@
+"""Seed defaults for AppSetting (specs/07-llm-integration.md §6).
+
+Only keys whose default value is fully specified in the spec are listed here.
+`evaluation.nominal_dimension_map`, `evaluation.grade_reference_map` and
+`report.disclaimer` are added in the phase that uses them.
+"""
+
+from typing import NamedTuple
+
+
+class SettingDefault(NamedTuple):
+    value: object
+    value_type: str
+    description: str
+
+
+APP_SETTING_DEFAULTS: dict[str, SettingDefault] = {
+    "llm.max_input_chars": SettingDefault(150000, "int", "LLM 입력 최대 문자 수"),
+    "extraction.min_text_chars_per_page": SettingDefault(
+        30, "int", "페이지당 최소 문자 수 (미만이면 스캔 PDF로 판정)"
+    ),
+    "extraction.low_confidence_threshold": SettingDefault(
+        0.7, "float", "이 값 미만 신뢰도의 메타데이터는 검토 화면에서 강조"
+    ),
+    "extraction.auto_apply_company": SettingDefault(
+        False, "bool", "회사 자료 추출 결과를 검토 없이 자동 반영"
+    ),
+    "extraction.excerpt_keywords": SettingDefault(
+        [
+            "납기",
+            "납품기한",
+            "지체상금",
+            "하자",
+            "제출서류",
+            "시험성적서",
+            "실적",
+            "자격",
+            "직접생산",
+            "중소기업",
+            "검사",
+        ],
+        "json",
+        "장문 첨부(계약조건·심사기준)에서 발췌할 키워드",
+    ),
+    "bid.auto_evaluate_after_extract": SettingDefault(
+        True, "bool", "공고 추출 완료 후 판정 자동 실행"
+    ),
+    "evaluation.cert_expiring_days": SettingDefault(90, "int", "인증서 만료 임박 기준(일)"),
+    "evaluation.test_report_max_age_years": SettingDefault(
+        0, "int", "시험성적서 유효 연수 제한 (0=제한 없음, 공고 명시 시 공고 우선)"
+    ),
+    "evaluation.dimension_tolerance_mm": SettingDefault(3, "int", "치수 허용오차(mm)"),
+    "evaluation.use_llm": SettingDefault(True, "bool", "false면 규칙 판정만 수행"),
+    "evaluation.reference_date_mode": SettingDefault(
+        "AUTO", "str", "판정 기준일 (AUTO / BID_CLOSE / TODAY)"
+    ),
+    "evaluation.batch_size": SettingDefault(10, "int", "판정 LLM 호출당 요구사항 수"),
+    "fit.weights": SettingDefault(
+        {"product_type": 40, "power_plant": 15, "qualification": 25, "spec_coverage": 20},
+        "json",
+        "적합도 가중치",
+    ),
+    "fit.power_plant_keywords": SettingDefault(
+        ["발전", "화력", "복합", "열병합", "지역난방", "가스터빈", "GT", "CCPP"],
+        "json",
+        "발전소 공고 판별 키워드",
+    ),
+    "report.company_logo": SettingDefault(None, "str", "보고서 로고"),
+    "jobs.concurrency": SettingDefault(2, "int", "백그라운드 작업 동시 실행 수"),
+    "jobs.run_inline": SettingDefault(
+        False, "bool", "작업을 요청 내에서 동기 실행 (개발/테스트용)"
+    ),
+    "upload.max_mb": SettingDefault(50, "int", "업로드 파일 최대 크기(MB)"),
+    "auth.lockout_threshold": SettingDefault(5, "int", "연속 로그인 실패 허용 횟수"),
+    "auth.lockout_minutes": SettingDefault(5, "int", "로그인 잠금 시간(분)"),
+    "company.standard_lead_time_days": SettingDefault(
+        None, "int", "표준 납기(일). 비어 있으면 납기 판정은 '확인 필요'"
+    ),
+}
