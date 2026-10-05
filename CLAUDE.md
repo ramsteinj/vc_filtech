@@ -31,7 +31,7 @@
 
 - Frontend: Vue.js 3 + Vite, Bootstrap **5.0.x** (`bootstrap@5.0.2`), HTML5/CSS3, SPA (Vue Router, Pinia, axios)
 - Backend: Python 3.12, Django 5.2 LTS, Django REST Framework, Django ORM, REST/JSON
-- DB: PostgreSQL 16
+- DB: PostgreSQL 18 — 로컬 설치 서버(`127.0.0.1:5432`) 사용. **docker / docker compose 사용 금지**
 - 사용자 모델: `accounts.User(AbstractUser)` + `role` 필드 (ADMIN / BID_MANAGER)
 
 ## 디렉터리
@@ -46,12 +46,12 @@ initial-data/  초기 데이터 (읽기 전용 — 수정·삭제 금지)
 ## 자주 쓰는 명령
 
 ```bash
-# DB
-docker compose up -d db
+# DB: 로컬 PostgreSQL 18 (최초 1회 역할·DB 생성 — specs/01 §4.1)
+pg_lsclusters                         # 18/main online 확인
 
 # Backend
 cd backend
-python -m venv .venv && source .venv/bin/activate
+python3.12 -m venv .venv && source .venv/bin/activate   # 셸의 `python`은 Windows pyenv를 가리킴 — 사용 금지
 pip install -r requirements.txt
 python manage.py migrate              # 기본 관리자(admin / admin1234!) 자동 생성
 python manage.py load_initial_data    # initial-data/ 적재

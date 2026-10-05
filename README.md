@@ -25,7 +25,7 @@
 |---|---|
 | Frontend | Vue.js 3, Vite, Bootstrap 5.0, HTML5/CSS3 (SPA) |
 | Backend | Python 3.12, Django 5.2, Django REST Framework, Django ORM |
-| Database | PostgreSQL 16 |
+| Database | PostgreSQL 18 (로컬 설치) |
 | LLM | OpenAI / Anthropic / Google Gemini SDK |
 
 ```
@@ -66,11 +66,14 @@ frontend/        Vue 3 (예정)
 ## 빠른 시작 (구현 후 사용 예정)
 
 ```bash
-cp .env.example .env              # DJANGO_SECRET_KEY, FIELD_ENCRYPTION_KEY 설정
-docker compose up -d db
+cp .env.example .env              # DJANGO_SECRET_KEY, FIELD_ENCRYPTION_KEY, DATABASE_URL 설정
+
+# 로컬 PostgreSQL 18에 역할·DB 생성 (최초 1회, 자세한 내용은 specs/01 §4.1)
+sudo -u postgres psql -c "CREATE ROLE filtech WITH LOGIN PASSWORD 'filtech' CREATEDB;"
+sudo -u postgres psql -c "CREATE DATABASE filtech OWNER filtech ENCODING 'UTF8' TEMPLATE template0;"
 
 cd backend
-python -m venv .venv && source .venv/bin/activate
+python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate          # 기본 관리자 admin / admin1234! 자동 생성
 python manage.py load_initial_data

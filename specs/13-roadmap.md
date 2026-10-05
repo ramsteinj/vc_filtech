@@ -3,7 +3,7 @@
 각 마일스톤 완료 시 체크하고 README의 “기능 현황”을 갱신한다. 마일스톤 하나 = 하나 이상의 PR/커밋 묶음.
 
 ## M0. 프로젝트 골격
-- [ ] `docker-compose.yml`(PostgreSQL 16), `.env.example`
+- [ ] 로컬 PostgreSQL 18에 `filtech` 역할·DB 생성([01](01-architecture.md) §4.1), `.env.example`
 - [ ] Django 프로젝트 `backend/config`, settings 분리(base/dev/test), DRF, SimpleJWT, CORS
 - [ ] `accounts.User(AbstractUser)` + `AUTH_USER_MODEL` (첫 migrate 전)
 - [ ] Vue 3 + Vite + Bootstrap 5.0.2 + Router + Pinia + axios, `/api` 프록시

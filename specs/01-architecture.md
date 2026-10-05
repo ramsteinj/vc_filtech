@@ -23,7 +23,7 @@ PostgreSQL  ◀── Job 워커 (python manage.py run_jobs)
 | DRF | 3.15+ |
 | 인증 | djangorestframework-simplejwt |
 | DB 드라이버 | psycopg 3 |
-| DB | PostgreSQL 16 (docker compose) |
+| DB | PostgreSQL 18 — **로컬 설치 서버 사용** (docker / docker compose 사용 안 함) |
 | 문서 파싱 | pypdf(또는 pdfplumber), python-docx, olefile(HWP 5.0 직접 파싱), zipfile+lxml(HWPX), openpyxl(XLSX), xlrd(XLS), charset-normalizer(TXT) |
 | LLM SDK | `anthropic`, `openai`, `google-genai` |
 | 암호화 | cryptography (Fernet) |
@@ -40,7 +40,6 @@ PostgreSQL  ◀── Job 워커 (python manage.py run_jobs)
 vc_filtech/
 ├── CLAUDE.md
 ├── README.md
-├── docker-compose.yml           # postgres
 ├── .env.example
 ├── specs/
 ├── initial-data/                # 읽기 전용
@@ -81,7 +80,7 @@ vc_filtech/
 | `DJANGO_SECRET_KEY` | | 필수 |
 | `DJANGO_DEBUG` | `true` | |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | |
-| `DATABASE_URL` | `postgres://filtech:filtech@localhost:5432/filtech` | |
+| `DATABASE_URL` | `postgres://filtech:filtech@127.0.0.1:5432/filtech` | 로컬 PostgreSQL 18 (§4.1) |
 | `FIELD_ENCRYPTION_KEY` | Fernet 키 | API Key 암호화. 없으면 기동 실패(dev에서는 SECRET_KEY로 파생 허용 + 경고) |
 | `MEDIA_ROOT` | `./media` | 업로드 파일 |
 | `INITIAL_DATA_DIR` | `../initial-data` | |
@@ -90,6 +89,21 @@ vc_filtech/
 | `TIME_ZONE` | `Asia/Seoul` | |
 
 **LLM API Key와 모델은 환경 변수가 아니라 DB에 저장**한다(요구사항).
+
+### 4.1 로컬 PostgreSQL 준비 (최초 1회)
+
+로컬에 설치된 PostgreSQL 18 서버(`127.0.0.1:5432`, 클러스터 `18/main`)를 그대로 사용한다. docker / docker compose는 사용하지 않는다.
+
+```bash
+sudo -u postgres psql <<'SQL'
+CREATE ROLE filtech WITH LOGIN PASSWORD 'filtech' CREATEDB;   -- CREATEDB: pytest가 test DB 생성
+CREATE DATABASE filtech OWNER filtech ENCODING 'UTF8' TEMPLATE template0;
+SQL
+psql "postgres://filtech:filtech@127.0.0.1:5432/filtech" -c 'select version();'   # 접속 확인
+```
+
+- 운영 비밀번호는 `.env`에만 두고 커밋하지 않는다.
+- 테스트(pytest-django)는 같은 서버에 `test_filtech` DB를 만들었다가 지운다 — 역할에 `CREATEDB` 권한 필요.
 
 ## 5. 백그라운드 작업 (Job)
 
