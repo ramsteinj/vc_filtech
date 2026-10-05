@@ -3,7 +3,8 @@
 Model IDs live only here as seed data; admins can add/edit them in the UI.
 """
 
-from .models import LLMModelOption, LLMProviderConfig, LLMSettings, Provider
+from .models import LLMModelOption, LLMProviderConfig, LLMSettings, PromptTemplate, Provider
+from .prompt_defaults import COMMON_SYSTEM, PROMPTS
 
 MODEL_OPTION_DEFAULTS = [
     # provider, model_id, display_name, supports_pdf_input, is_default
@@ -19,8 +20,31 @@ MODEL_OPTION_DEFAULTS = [
 ]
 
 
+def prompt_fields(default: dict) -> dict:
+    return {
+        "name": default["name"],
+        "description": default["description"],
+        "system_prompt": COMMON_SYSTEM,
+        "user_prompt_template": default["user_prompt_template"],
+        "output_schema": default["output_schema"],
+    }
+
+
+def seed_prompts() -> int:
+    existing = set(PromptTemplate.objects.values_list("key", flat=True))
+    created = 0
+    for default in PROMPTS:
+        if default["key"] in existing:
+            continue
+        PromptTemplate.objects.create(
+            key=default["key"], version=1, is_active=True, notes="기본값", **prompt_fields(default)
+        )
+        created += 1
+    return created
+
+
 def seed_llm_defaults() -> None:
-    """Create missing providers, model options and the settings row. Never overwrites."""
+    """Create missing providers, model options, prompts and the settings row. Never overwrites."""
     for provider in Provider.values:
         LLMProviderConfig.objects.get_or_create(provider=provider)
 
@@ -38,6 +62,8 @@ def seed_llm_defaults() -> None:
             is_default=is_default and provider not in has_default,
             order=order,
         )
+
+    seed_prompts()
 
     settings_row = LLMSettings.load()
     if settings_row.active_model is None:

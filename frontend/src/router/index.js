@@ -80,6 +80,18 @@ const routes = [
     component: () => import('@/views/admin/LLMSettingsView.vue'),
     meta: { requiresAuth: true, admin: true },
   },
+  {
+    path: '/admin/settings/prompts',
+    name: 'admin-prompt-settings',
+    component: () => import('@/views/admin/PromptSettingsView.vue'),
+    meta: { requiresAuth: true, admin: true },
+  },
+  {
+    path: '/admin/settings/tuning',
+    name: 'admin-tuning-settings',
+    component: () => import('@/views/admin/TuningSettingsView.vue'),
+    meta: { requiresAuth: true, admin: true },
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 

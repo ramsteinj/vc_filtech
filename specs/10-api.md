@@ -76,13 +76,13 @@ Prefix `/api`. 권한: 🅰 ADMIN, 🅱 BID_MANAGER 이상(= 로그인 사용자
 | GET/POST | `/settings/prompts/{key}` | 🅰 | 버전 목록 / 새 버전 저장 |
 | POST | `/settings/prompts/{key}/activate` | 🅰 | `{version}` 롤백 |
 | POST | `/settings/prompts/{key}/reset` | 🅰 | seed 기본값 새 버전 |
-| POST | `/settings/prompts/{key}/test` | 🅰 | `{variables | document_id}` → 원시응답·파싱결과 |
-| GET/PUT | `/settings/app` | 🅰 | AppSetting 그룹별 조회/일괄 저장 |
+| POST | `/settings/prompts/{key}/test` | 🅰 | `{variables | document_id, system_prompt?, user_prompt_template?, output_schema?}` — 편집 중(미저장) 내용으로 실행. `document_id`는 `document.*` 프롬프트만. → `{ok, system, user, raw_text, parsed, input_tokens, output_tokens, latency_ms}` 또는 `{ok: false, error, raw_text}`. LLM 미설정 시 409 |
+| GET/PUT | `/settings/app` | 🅰 | GET `{groups: [{group, settings: [{key, value, value_type, description, default, is_default}]}]}` / PUT `{values: {key: value}}` — 하나라도 오류면 전체 롤백, 400 `errors`에 키별 사유 |
 | POST | `/settings/app/{key}/reset` | 🅰 | |
 
 ## 작업 · 로그 · 적재
 | GET | `/jobs/{id}` | 🅱(본인)/🅰 | 상태 폴링 |
 | GET | `/jobs` | 🅰 | 목록 |
 | POST | `/jobs/{id}/retry`, `/jobs/{id}/cancel` | 🅰 | |
-| GET | `/llm-logs` | 🅰 | 필터 task_key, status, 기간 |
+| GET | `/llm-logs` | 🅰 | 필터 `task_key`(부분 일치), `status`, `provider`, `date_from`, `date_to`. 응답에 `summary: {today, month}` (호출 수·입력/출력 토큰 합계) |
 | POST | `/admin/load-initial-data` | 🅰 | `{mode: skip|update}` → `{job_id}` |

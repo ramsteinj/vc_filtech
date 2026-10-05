@@ -19,10 +19,16 @@ class OkProvider(LLMProvider):
     def verify(self, model):
         OkProvider.calls.append((self.api_key, model))
 
+    def generate(self, request):
+        raise NotImplementedError
+
 
 class FailingProvider(LLMProvider):
     def verify(self, model):
         raise LLMError("API Key가 올바르지 않거나 권한이 없습니다.")
+
+    def generate(self, request):
+        raise NotImplementedError
 
 
 @pytest.fixture

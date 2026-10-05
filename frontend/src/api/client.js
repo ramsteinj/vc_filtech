@@ -45,12 +45,17 @@ client.interceptors.response.use(
       return client(config)
     }
 
-    // 409 llm_not_configured: send the user to the admin login (specs/03 §4).
+    // 409 llm_not_configured: admins go to the LLM settings, others to the admin login
+    // (specs/03 §4).
     if (response.status === 409 && response.data?.code === 'llm_not_configured') {
-      router?.push({
-        name: 'admin-login',
-        query: { redirect: '/admin/settings/llm', reason: 'llm_not_configured' },
-      })
+      router?.push(
+        auth.isAdmin
+          ? { name: 'admin-llm-settings', query: { reason: 'llm_not_configured' } }
+          : {
+              name: 'admin-login',
+              query: { redirect: '/admin/settings/llm', reason: 'llm_not_configured' },
+            },
+      )
     }
     throw error
   },

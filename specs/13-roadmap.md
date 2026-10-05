@@ -29,10 +29,11 @@
 - **완료 기준**: [12](12-initial-data.md) §2.2 기대값과 일치(테스트 통과), §5 파서 테스트 통과. ✅ 2026-10-06 (pytest 237개, 브라우저 시나리오 27개 항목 확인)
 
 ## M3. LLM 서비스 · 프롬프트 · 튜닝 설정
-- [ ] providers(anthropic/openai/gemini/fake), `run_task`, 스키마 검증·재시도, LLMCallLog
-- [ ] PromptTemplate·AppSetting seed, 관리자 편집/버전/롤백/테스트 화면
-- [ ] LLM 문서 분류·메타데이터 추출 보완, 문서 검토 화면(메타데이터 CRUD, 적용)
+- [x] providers(anthropic/openai/gemini/fake), `run_task`, 스키마 검증·재시도, LLMCallLog
+- [x] PromptTemplate·AppSetting seed, 관리자 편집/버전/롤백/테스트 화면
+- [x] LLM 문서 분류·메타데이터 추출 보완, 문서 검토 화면(메타데이터 CRUD, 적용)
 - **완료 기준**: 3개 제공자 중 최소 Claude로 실제 호출 성공, 다른 제공자는 FakeProvider 단위 테스트 + 키 있으면 수동 확인.
+  - 2026-10-06: 테스트 287개, 브라우저 시나리오 확인. 이 개발 환경에는 유효한 API Key가 없어 **유효 키로의 실제 생성 호출 성공은 미확인** (틀린 키로 실제 Anthropic 호출 → 인증 오류가 화면까지 전달되는 것은 확인). 사용자 키 입력 후 프롬프트 화면의 [테스트 실행]으로 확인 필요.
 
 ## M4. 입찰 공고 관리 · 요구사항 추출
 - [ ] BidNotice/BidAttachment/BidItem/BidRequirement, 관리자 등록(파일 다중/텍스트)·수정·삭제

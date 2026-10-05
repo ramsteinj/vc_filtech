@@ -12,6 +12,7 @@ import {
   verifyProvider,
 } from '@/api/settings'
 import BaseModal from '@/components/BaseModal.vue'
+import SettingsNav from '@/components/SettingsNav.vue'
 import { useSystemStore } from '@/stores/system'
 import { useToastStore } from '@/stores/toast'
 import { errorMessage } from '@/utils/errors'
@@ -235,7 +236,7 @@ function formatDate(value) {
 
 <template>
   <div>
-    <h1 class="h4 mb-3">LLM 설정</h1>
+    <SettingsNav />
 
     <div v-if="showMissingNotice" class="alert alert-warning">
       <i class="bi bi-exclamation-triangle me-1"></i>LLM API Key가 설정되지 않았습니다. 사용할

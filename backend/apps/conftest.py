@@ -61,3 +61,21 @@ def admin_client(admin_user):
 @pytest.fixture
 def manager_client(manager_user):
     return _client_for(manager_user)
+
+
+RAW_KEY = "sk-ant-api03-SECRETVALUE-9876"
+
+
+@pytest.fixture
+def fake_llm(db, monkeypatch):
+    """Active provider configured with a key; every LLM call goes to FakeProvider."""
+    from apps.llm import services
+    from apps.llm.models import LLMProviderConfig
+    from apps.llm.providers.fake import FakeProvider
+
+    config = LLMProviderConfig.objects.get(provider="ANTHROPIC")
+    config.set_api_key(RAW_KEY)
+    config.is_enabled = True
+    config.save()
+    monkeypatch.setattr(services, "get_provider_class", lambda name: FakeProvider)
+    return FakeProvider.reset()

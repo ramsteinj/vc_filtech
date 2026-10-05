@@ -1,6 +1,15 @@
 from rest_framework import serializers
 
-from .models import LLMModelOption, LLMProviderConfig, LLMSettings, Provider
+from .models import (
+    LLMCallLog,
+    LLMModelOption,
+    LLMProviderConfig,
+    LLMSettings,
+    PromptTemplate,
+    Provider,
+)
+from .prompts import check_syntax
+from .schemas import schema_error
 
 
 class ProviderConfigSerializer(serializers.ModelSerializer):
@@ -108,3 +117,73 @@ class LLMSettingsSerializer(serializers.ModelSerializer):
                     {"active_model_id": ["비활성화된 모델은 선택할 수 없습니다."]}
                 )
         return attrs
+
+
+class PromptTemplateSerializer(serializers.ModelSerializer):
+    updated_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PromptTemplate
+        fields = [
+            "id",
+            "key",
+            "name",
+            "description",
+            "system_prompt",
+            "user_prompt_template",
+            "output_schema",
+            "version",
+            "is_active",
+            "notes",
+            "updated_by_name",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+    def get_updated_by_name(self, obj) -> str | None:
+        return str(obj.updated_by) if obj.updated_by_id else None
+
+
+class PromptVersionCreateSerializer(serializers.Serializer):
+    system_prompt = serializers.CharField(trim_whitespace=False)
+    user_prompt_template = serializers.CharField(trim_whitespace=False)
+    output_schema = serializers.JSONField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def validate(self, attrs):
+        errors = {}
+        for name in ("system_prompt", "user_prompt_template"):
+            problem = check_syntax(attrs[name])
+            if problem:
+                errors[name] = [f"템플릿 문법 오류: {problem}"]
+        problem = schema_error(attrs.get("output_schema"))
+        if problem:
+            errors["output_schema"] = [f"JSON Schema 오류: {problem}"]
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
+
+
+class LLMCallLogSerializer(serializers.ModelSerializer):
+    status_label = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = LLMCallLog
+        fields = [
+            "id",
+            "task_key",
+            "provider",
+            "model_id",
+            "prompt_version",
+            "request_tokens",
+            "response_tokens",
+            "latency_ms",
+            "status",
+            "status_label",
+            "error",
+            "request_excerpt",
+            "response_text",
+            "job",
+            "created_at",
+        ]
+        read_only_fields = fields

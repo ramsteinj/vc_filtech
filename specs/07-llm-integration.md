@@ -43,10 +43,14 @@ class LLMResponse:
     raw: dict
 ```
 
-- 구조화 출력: 각 SDK의 JSON Schema 기반 구조화 출력 기능을 우선 사용하고(Anthropic: tool/structured output, OpenAI: `response_format=json_schema`, Gemini: `response_schema`), 미지원 시 “JSON만 출력” 지시 + 코드블록 제거 후 파싱.
-- PDF 입력: Anthropic `document` 블록(base64), OpenAI 파일 입력, Gemini `inline_data`.
-- `run_task` 흐름: 설정 로드(작업별 override 적용) → 프롬프트 렌더 → 호출(타임아웃·재시도: 429/5xx 지수 백오프, `max_retries`) → JSON 파싱·스키마 검증 → 실패 시 “스키마 오류 내용 + 다시 JSON만 출력” 1회 재요청 → 그래도 실패면 `LLMInvalidOutput` 예외(호출자는 안전한 기본값으로 처리: 판정이면 `NEEDS_CONFIRMATION`).
-- 긴 입력: `AppSetting: llm.max_input_chars`(기본 150,000) 초과 시 첨부 우선순위(공고문 > 규격서 > 명세서 > 계약조건 발췌 > 기타)대로 자르고 잘린 사실을 프롬프트에 명시.
+- 구조화 출력: 각 SDK의 JSON Schema 기반 구조화 출력 기능을 사용한다 — Anthropic `output_config.format`(`json_schema`; Opus 5.5·Fable 5.1·Sonnet 5.5는 강제 `tool_choice`가 400이므로 tool 강제 방식은 쓰지 않음), OpenAI Responses API `text.format`(`json_schema`, strict), Gemini `response_json_schema`. 응답 텍스트에서 코드블록을 제거한 뒤 파싱하는 처리는 공통으로 둔다.
+- **출력 스키마 작성 규칙** (세 제공자의 strict 모드 공통 부분집합): 모든 object는 `additionalProperties: false`, 모든 속성을 `required`에 나열, 값이 없을 수 있으면 `["string", "null"]`처럼 null 허용 타입. 키가 동적인 dict는 쓰지 않는다. 목록·객체 형태가 고정되지 않은 메타데이터 값(list/json/dimension/grade)은 **JSON 문자열**로 받아 서버에서 파싱한다.
+- **Claude 호출 세부**: `temperature`는 보내지 않는다(현재 Claude 5.x 계열은 샘플링 파라미터를 거부하고 SDK 1.x에도 인자가 없음 — 다른 제공자에는 그대로 적용). 사고 깊이는 작업별 override의 `effort`(`low`~`max`)로 조정한다(Opus 5.5 기본값 `medium`). 응답은 스트리밍으로 받는다(긴 출력의 HTTP 타임아웃 방지). Claude API 직결(Base URL 미지정)이고 모델이 Opus 5.x·Fable 5.x·Sonnet 5.5이면 정책 거부 시 서버 측 대체 모델을 쓰도록 `fallbacks: "default"`(beta `server-side-fallback-2026-07-01`)를 보낸다. `stop_reason: "refusal"`이면 `LLMError`(“LLM이 요청을 거부했습니다”).
+- OpenAI는 일부 모델이 `temperature`를 거부할 수 있으므로, 400 응답이 temperature를 지적하면 temperature 없이 1회 재요청한다.
+- PDF 입력: Anthropic `document` 블록(base64, 텍스트보다 앞), OpenAI `input_file`(data URL), Gemini `Part.from_bytes`.
+- `run_task` 흐름: 설정 로드(작업별 override 적용 — `per_task_overrides`의 키는 작업 키 또는 `draft.*` 같은 패턴, 값은 `model`·`temperature`·`max_output_tokens`·`effort`) → 프롬프트 렌더(jinja2 Sandbox, 정의되지 않은 변수는 오류) → 호출(타임아웃·재시도: 429/5xx/연결 오류는 각 SDK의 재시도 기능에 `max_retries`를 넘겨 지수 백오프) → JSON 파싱·스키마 검증 → 실패 시 “스키마 오류 내용 + 다시 JSON만 출력” 1회 재요청 → 그래도 실패면 `LLMInvalidOutput` 예외(호출자는 안전한 기본값으로 처리: 판정이면 `NEEDS_CONFIRMATION`).
+- 긴 입력: `AppSetting: llm.max_input_chars`(기본 150,000) 초과 시 첨부 우선순위(공고문 > 규격서 > 명세서 > 계약조건 발췌 > 기타)대로 자르고 잘린 사실을 프롬프트에 명시. 우선순위 배분은 호출하는 쪽(공고 추출, Phase 5)이 하고, `run_task`는 최종 안전장치로 렌더된 사용자 프롬프트가 한도를 넘으면 뒷부분을 자르고 그 사실을 덧붙인다.
+- 프롬프트 테스트 호출도 `LLMCallLog`에 `task_key = test:<키>`로 기록한다(비용 추적).
 - 연결 테스트: `services.verify(provider, api_key, model)` — “OK”만 답하는 최소 요청.
 
 ## 3. 모델 옵션 (seed `LLMModelOption`)

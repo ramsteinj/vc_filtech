@@ -18,6 +18,7 @@ def extract_document(job, report):
         from_step=payload.get("from_step", "parse"),
         apply=payload.get("apply"),
         report=report,
+        job=job,
     )
 
 
