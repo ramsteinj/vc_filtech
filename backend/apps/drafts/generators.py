@@ -43,14 +43,23 @@ def use_llm() -> bool:
     return bool(get_setting("evaluation.use_llm")) and is_llm_configured()
 
 
-def _llm(task_key: str, variables: dict, job=None, allow: bool = True) -> dict | None:
+def _llm(
+    task_key: str, variables: dict, job=None, allow: bool = True, required: str | None = None
+) -> dict | None:
+    """Run a draft task. With `required`, an empty list in that key (seen with real calls:
+    a schema-valid but empty letter) is retried once, then treated as no LLM result."""
     if not (allow and use_llm()):
         return None
-    try:
-        return run_task(task_key, variables, job=job).data
-    except (LLMError, LLMNotConfigured) as exc:
-        logger.warning("%s failed: %s", task_key, exc)
-        return None
+    for _ in range(2 if required else 1):
+        try:
+            data = run_task(task_key, variables, job=job).data
+        except (LLMError, LLMNotConfigured) as exc:
+            logger.warning("%s failed: %s", task_key, exc)
+            return None
+        if not required or data.get(required):
+            return data
+        logger.warning("%s returned no %s; retrying", task_key, required)
+    return None
 
 
 def _date(value) -> str:
@@ -298,6 +307,7 @@ def checklist(bid, user=None, job=None, allow_llm: bool = True) -> tuple[dict, b
         },
         job,
         allow_llm,
+        required="sections",
     )
     if data and data.get("sections"):
         by_title = {
@@ -381,6 +391,7 @@ def technical_query(bid, user=None, job=None, allow_llm: bool = True) -> tuple[d
         },
         job,
         allow_llm,
+        required="questions",
     )
     if data and data.get("questions"):
         valid_ids = {q["requirement_id"] for q in questions}
@@ -403,6 +414,10 @@ def technical_query(bid, user=None, job=None, allow_llm: bool = True) -> tuple[d
 
 
 # ---- 4. Review report ----------------------------------------------------------------
+
+
+def _first_line(text: str) -> str:
+    return next((line.strip() for line in (text or "").splitlines() if line.strip()), "-")
 
 
 def rule_recommendation(bid, stats: dict) -> tuple[str, str]:
@@ -433,7 +448,7 @@ def review_report(bid, user=None, job=None, allow_llm: bool = True) -> tuple[dic
         "high_supplement": sum(1 for _, e in high if e.verdict == "NEEDS_SUPPLEMENT"),
     }
     recommendation, reason = rule_recommendation(bid, stats)
-    key_risks = [f"{r.title}: {e.rationale.splitlines()[0]}" for r, e in high]
+    key_risks = [f"{r.title}: {_first_line(e.rationale or e.auto_answer)}" for r, e in high]
     next_actions = []
     for r, e in high:
         for action in e.action_items[:2]:

@@ -39,7 +39,7 @@ EVALUATE_BID : 요구사항마다 ① 증거 수집 → ② 규칙 엔진 → �
 }
 ```
 
-- 추출 후 **규칙 후처리**: 단위 재환산 검증(LLM이 계산한 값과 `units.py` 계산값이 1% 이상 다르면 규칙 값 사용), 날짜 형식 정규화, 공고번호 정규식 `\d{11}-\d{2}`.
+- 추출 후 **규칙 후처리**: 단위 재환산 검증(LLM이 계산한 값과 `units.py` 계산값이 1% 이상 다르면 규칙 값 사용), 날짜 형식 정규화, 공고번호 정규식 `\d{11}-\d{2}`. `DELIVERY`에 `months_after_contract`만 있으면 `days_after_contract = 개월 × 30`으로 채운다(원 값 유지).
 - **요구사항 누락 방지 체크**: 아래 기본 카테고리가 하나도 없으면 `NEEDS_CONFIRMATION` 자리표시 요구사항을 자동 생성(“공고에 ○○ 요구사항이 명시되어 있지 않음 — 확인 필요”): `DIMENSION`, `FILTER_GRADE` 또는 `EFFICIENCY`, `PRESSURE_DROP`, `TEST_STANDARD`, `CERTIFICATION`, `DELIVERY`, `SUBMISSION_DOC`.
 - 공고문 내 “입찰참가자격”은 항목별로 분해: 물품 등록(세부품명번호), 직접생산확인, 중소기업확인서, 실적제한(기간·금액·규격), 지역제한 등 → `CERTIFICATION` / `TRACK_RECORD`.
 - 재추출 시 `is_locked` 요구사항은 유지, 나머지는 교체(기존 판정은 요구사항 삭제와 함께 삭제). 수동 수정된 판정이 있는 요구사항은 삭제 전 경고.

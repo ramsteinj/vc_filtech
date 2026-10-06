@@ -195,6 +195,14 @@ def normalize_requirement(category: str, text: str, normalized: dict) -> dict:
             normalized["value"] = computed
             normalized["unit"] = "m3/h"
             normalized["unit_corrected"] = value is not None
+    elif category == "DELIVERY":
+        months = normalized.get("months_after_contract")
+        if (
+            not normalized.get("days_after_contract")
+            and isinstance(months, (int, float))
+            and months
+        ):
+            normalized["days_after_contract"] = int(months * 30)
     elif category == "DIMENSION" and not any(normalized.get(k) for k in ("w", "dia")):
         dimension = parse_dimension(raw) or parse_dimension(text)
         if dimension:

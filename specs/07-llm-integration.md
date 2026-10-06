@@ -72,7 +72,7 @@ class LLMResponse:
 - `supports_pdf_input` seed: Claude 전 모델·Gemini = true (공식 문서에 PDF 입력 예시 있음), OpenAI = false (모델 목록 문서에 PDF 입력 명시 없음 — 관리자가 확인 후 변경).
 - `max_output_tokens`(모델 옵션)는 공식 수치를 확인한 경우에만 채우고, 비어 있으면 `LLMSettings.max_output_tokens`를 그대로 사용한다.
 - `LLMSettings` 초기값: `active_provider=ANTHROPIC`, `active_model=claude-opus-5-5`, `temperature=0.2`, `max_output_tokens=8192`, `timeout_sec=180`, `max_retries=2`. (Key가 없으므로 `llm_configured=false`)
-- 작업별 override 기본값: `evaluation.judge`·`bid.extract` temperature 0.0, `draft.*` 0.3. `bid.extract`는 `max_output_tokens` 32000 — 공고 통합 추출 결과(품목·요구사항·인용문)가 8192 토큰을 넘어 잘리는 것을 실제 호출로 확인(2026-10-06). 기존 DB에는 마이그레이션으로 이 값이 없을 때만 추가한다.
+- 작업별 override 기본값: `evaluation.judge`·`bid.extract` temperature 0.0, `draft.*` 0.3. `bid.extract`는 `max_output_tokens` 32000 — 공고 통합 추출 결과(품목·요구사항·인용문)가 8192 토큰을 넘어 잘리는 것을 실제 호출로 확인(2026-10-06). 기존 DB에는 마이그레이션으로 이 값이 없을 때만 추가한다. 같은 이유로 `evaluation.judge`(배치 10건의 근거·답변)와 `draft.*`(요구사항 수십 행의 Compliance Matrix·체크리스트·질의서)도 `max_output_tokens` 32000 — 8192에서 잘리는 것을 실제 호출로 확인(2026-10-06).
 
 ## 4. 프롬프트 템플릿 (seed `PromptTemplate`)
 

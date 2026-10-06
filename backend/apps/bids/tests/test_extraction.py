@@ -164,3 +164,18 @@ def test_extract_job_chains_without_evaluate_handler(
     assert job.status == "SUCCEEDED", job.error
     assert job.result["placeholders"] == ["SUBMISSION_DOC"]
     assert BidRequirement.objects.filter(bid=sample_bid).count() == 13
+
+
+def test_delivery_months_become_days():
+    from apps.bids.extraction import normalize_requirement
+
+    out = normalize_requirement(
+        "DELIVERY",
+        "계약일로부터 5개월 이내",
+        {"days_after_contract": None, "months_after_contract": 5},
+    )
+    assert out["days_after_contract"] == 150 and out["months_after_contract"] == 5
+    kept = normalize_requirement(
+        "DELIVERY", "", {"days_after_contract": 90, "months_after_contract": 5}
+    )
+    assert kept["days_after_contract"] == 90

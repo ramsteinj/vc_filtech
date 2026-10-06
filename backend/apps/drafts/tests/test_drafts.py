@@ -227,3 +227,40 @@ def test_api_flow(manager_client, bid, inline_jobs):
 
 def test_api_requires_login(api_client, bid):
     assert api_client.get(f"/api/bids/{bid.pk}/drafts").status_code == 401
+
+
+def test_empty_llm_letter_is_retried(bid, fake_llm):
+    empty = {
+        "header": {"to": "", "from": "", "date": "", "subject": ""},
+        "intro": "",
+        "questions": [],
+        "closing": "",
+    }
+    full = {
+        **empty,
+        "intro": "질의드립니다.",
+        "questions": [
+            {
+                "no": 1,
+                "reference": "",
+                "question": "확인 부탁드립니다.",
+                "background": "",
+                "proposed_alternative": "",
+                "requirement_id": 0,
+            }
+        ],
+    }
+    fake_llm.reset(empty, full)
+    content, used = technical_query(bid)
+    assert used and content["questions"][0]["question"] == "확인 부탁드립니다."
+    fake_llm.reset(empty, empty)
+    content, used = technical_query(bid)
+    assert used is False and len(content["questions"]) == 3  # rule-based letter kept
+
+
+def test_review_report_with_empty_rationale(bid):
+    evaluation = bid.requirements.get(category="CERTIFICATION").evaluation
+    evaluation.rationale = ""
+    evaluation.save()
+    content, _ = review_report(bid)
+    assert any(r.startswith("ISO 14001: 보완 필요") for r in content["key_risks"])
