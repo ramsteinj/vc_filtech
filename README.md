@@ -68,7 +68,7 @@ frontend/        Vue 3 + Vite SPA
 ## 빠른 시작
 
 ```bash
-cp .env.example .env              # DJANGO_SECRET_KEY, FIELD_ENCRYPTION_KEY, DATABASE_URL 설정 (생성 명령은 파일 안 주석 참고)
+cp backend/.env.example backend/.env   # DJANGO_SECRET_KEY, FIELD_ENCRYPTION_KEY, DATABASE_URL 설정 (생성 명령은 파일 안 주석 참고)
 
 # PDF(WeasyPrint)용 시스템 라이브러리 — Ubuntu/WSL 기준 (대부분 이미 설치되어 있음)
 sudo apt install libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b   # 선택: libharfbuzz-subset0 (폰트 서브셋 경고 제거)
@@ -136,7 +136,7 @@ pg_restore -h 127.0.0.1 -U filtech -d filtech --clean --if-exists filtech_YYYYMM
 tar xzf media_YYYYMMDD.tar.gz -C backend
 ```
 
-`.env`의 `FIELD_ENCRYPTION_KEY`가 바뀌면 DB에 암호화 저장된 API Key를 복호화할 수 없습니다 — 키를 백업과 함께 안전하게 보관하거나, 복구 후 LLM 설정에서 API Key를 다시 입력하세요.
+`backend/.env`의 `FIELD_ENCRYPTION_KEY`가 바뀌면 DB에 암호화 저장된 API Key를 복호화할 수 없습니다 — 키를 백업과 함께 안전하게 보관하거나, 복구 후 LLM 설정에서 API Key를 다시 입력하세요.
 
 ## 주의
 

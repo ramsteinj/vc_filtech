@@ -11,7 +11,7 @@ def check_field_encryption_key(app_configs, **kwargs):
             return [
                 Warning(
                     "FIELD_ENCRYPTION_KEY is not set; deriving a key from DJANGO_SECRET_KEY.",
-                    hint="Set FIELD_ENCRYPTION_KEY in .env (see .env.example).",
+                    hint="Set FIELD_ENCRYPTION_KEY in backend/.env (see backend/.env.example).",
                     id="llm.W001",
                 )
             ]

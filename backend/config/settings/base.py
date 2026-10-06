@@ -17,10 +17,9 @@ from config.env import (
 APP_VERSION = "0.1.0"
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
-REPO_DIR = BACKEND_DIR.parent
 FONTS_DIR = BACKEND_DIR / "fonts"  # Noto Sans KR for PDF (specs/09 §5)
 
-load_dotenv(REPO_DIR / ".env")
+load_dotenv(BACKEND_DIR / ".env")
 
 SECRET_KEY = env_str("DJANGO_SECRET_KEY")
 if not SECRET_KEY:

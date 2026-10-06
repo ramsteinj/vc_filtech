@@ -42,12 +42,12 @@ PostgreSQL  ◀── Job 워커 (python manage.py run_jobs)
 vc_filtech/
 ├── CLAUDE.md
 ├── README.md
-├── .env.example
 ├── specs/
 ├── initial-data/                # 읽기 전용
 │   ├── company/{certificates,datasheets,records,test_reports}/
 │   └── bid_sample/{won,lost}/<공고폴더>/<첨부들>
 ├── backend/
+│   ├── .env.example            # backend/.env로 복사해 작성 (backend/.env는 커밋 금지)
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── pytest.ini
@@ -75,7 +75,9 @@ vc_filtech/
         └── components/
 ```
 
-## 4. 환경 변수 (`.env`)
+## 4. 환경 변수 (`backend/.env`)
+
+`backend/.env.example`을 `backend/.env`로 복사해 채운다. 설정 로더(`config/settings/base.py`)는 `backend/.env`를 읽고, 이미 설정된 OS 환경 변수는 덮어쓰지 않는다.
 
 | 변수 | 예 | 설명 |
 |---|---|---|
