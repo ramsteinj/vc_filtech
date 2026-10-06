@@ -77,7 +77,7 @@ class LLMModelOption(TimeStampedModel):
 def default_task_overrides():
     return {
         "evaluation.judge": {"temperature": 0.0},
-        "bid.extract": {"temperature": 0.0},
+        "bid.extract": {"temperature": 0.0, "max_output_tokens": 32000},
         "draft.*": {"temperature": 0.3},
     }
 

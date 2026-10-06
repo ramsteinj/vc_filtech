@@ -114,3 +114,11 @@ export const BID_ATTACHMENT_FORMATS = [
   '.xls',
   '.xlsx',
 ]
+
+export const VERDICTS = opts({
+  MET: '충족',
+  NEEDS_SUPPLEMENT: '보완 필요',
+  NEEDS_CONFIRMATION: '확인 필요',
+})
+
+export const RISK_LEVELS = opts({ LOW: '낮음', MEDIUM: '보통', HIGH: '높음' })

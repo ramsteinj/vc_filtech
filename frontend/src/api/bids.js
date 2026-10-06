@@ -39,3 +39,23 @@ function child(name) {
 
 export const bidItems = child('items')
 export const bidRequirements = child('requirements')
+
+export const dashboardSummary = () => client.get('/dashboard/summary').then(data)
+export const reviewBid = (id, reviewed) =>
+  client.post(`/bids/${id}/review`, { reviewed }).then(data)
+export const getComparison = (id) => client.get(`/bids/${id}/comparison`).then(data)
+export const listRequirementsWithEvaluation = (id) =>
+  client.get(`/bids/${id}/requirements`, { params: { include: 'evaluation' } }).then(data)
+
+export const evaluateBid = (id, { keepModified = true, requirementIds } = {}) =>
+  client
+    .post(`/bids/${id}/evaluate`, {
+      keep_modified: keepModified,
+      ...(requirementIds ? { requirement_ids: requirementIds } : {}),
+    })
+    .then(data)
+export const getEvaluations = (id) => client.get(`/bids/${id}/evaluations`).then(data)
+export const updateEvaluation = (eid, payload) =>
+  client.patch(`/evaluations/${eid}`, payload).then(data)
+export const revertEvaluation = (eid) => client.post(`/evaluations/${eid}/revert`).then(data)
+export const evaluationHistory = (eid) => client.get(`/evaluations/${eid}/history`).then(data)

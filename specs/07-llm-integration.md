@@ -72,7 +72,7 @@ class LLMResponse:
 - `supports_pdf_input` seed: Claude 전 모델·Gemini = true (공식 문서에 PDF 입력 예시 있음), OpenAI = false (모델 목록 문서에 PDF 입력 명시 없음 — 관리자가 확인 후 변경).
 - `max_output_tokens`(모델 옵션)는 공식 수치를 확인한 경우에만 채우고, 비어 있으면 `LLMSettings.max_output_tokens`를 그대로 사용한다.
 - `LLMSettings` 초기값: `active_provider=ANTHROPIC`, `active_model=claude-opus-5-5`, `temperature=0.2`, `max_output_tokens=8192`, `timeout_sec=180`, `max_retries=2`. (Key가 없으므로 `llm_configured=false`)
-- 작업별 override 기본값: `evaluation.judge`·`bid.extract` temperature 0.0, `draft.*` 0.3.
+- 작업별 override 기본값: `evaluation.judge`·`bid.extract` temperature 0.0, `draft.*` 0.3. `bid.extract`는 `max_output_tokens` 32000 — 공고 통합 추출 결과(품목·요구사항·인용문)가 8192 토큰을 넘어 잘리는 것을 실제 호출로 확인(2026-10-06). 기존 DB에는 마이그레이션으로 이 값이 없을 때만 추가한다.
 
 ## 4. 프롬프트 템플릿 (seed `PromptTemplate`)
 
@@ -82,7 +82,7 @@ class LLMResponse:
 | `document.extract_metadata` | 분류별 메타데이터 | `category`, `fields`, `text`, `has_file` | `{fields: [{key, value, raw, page, quote, confidence}], transcript}` — 찾은 필드만 |
 | `bid.extract` | 공고 통합 추출 (메타·품목·요구사항) | `attachments[{name, category, text}]`, `today`, `requirement_categories` | [08](08-compliance-evaluation.md) §2 스키마 |
 | `bid.fit_score` | 적합도 (규칙 점수 보정·사유) | `bid_summary`, `items`, `products`, `rule_score` | `{fit_score, is_power_plant, reason, matched:[{item_no, model_no, score, reason}]}` |
-| `evaluation.judge` | 요구사항 판정·답변 | `requirement`, `rule_result`, `company_evidence`, `bid_context`, `verdict_definitions` | `{verdict, risk_level, company_value, auto_answer, rationale, action_items, clarification_question, evidence_refs}` |
+| `evaluation.judge` | 요구사항 판정·답변 (배치) | `requirements`(요구사항별 `requirement`·`rule_result`·`company_evidence`), `bid_context`, `verdict_definitions` | `{results: [{requirement_id, verdict, risk_level, company_value, auto_answer, rationale, action_items, clarification_question, evidence_refs}]}` |
 | `draft.compliance_matrix` | 답변 문구 다듬기 | `rows` | `{rows:[{id, response, remark}]}` |
 | `draft.checklist` | 체크리스트 | `bid`, `requirements`, `evaluations`, `company_docs` | [09](09-drafts-and-reports.md) |
 | `draft.technical_query` | 기술질의서 | `bid`, `questions` | [09](09-drafts-and-reports.md) |
@@ -98,7 +98,7 @@ class LLMResponse:
 - 출력은 지정된 JSON 스키마만 반환합니다. 한국어로 작성합니다.
 ```
 
-### 4.2 `evaluation.judge` 판정 정의 (seed, 변수 `verdict_definitions`)
+### 4.2 `evaluation.judge` 판정 정의 (seed `AppSetting: evaluation.verdict_definitions`, 변수 `verdict_definitions`)
 ```
 MET(충족): 회사 자료(사양서/성적서/인증서/실적)에 요구사항을 만족함을 직접 입증하는 근거가 있고 유효함.
 NEEDS_SUPPLEMENT(보완 필요): 회사가 대응 가능성은 있으나 증빙·사양·유효기간·시험규격이 부족하거나 다름
@@ -132,7 +132,8 @@ NEEDS_CONFIRMATION(확인 필요): 공고 요구가 모호하거나 회사 자�
 | `evaluation.use_llm` | true | false면 규칙 판정만 |
 | `evaluation.reference_date_mode` | `AUTO` | 판정 기준일 (`AUTO`/`BID_CLOSE`/`TODAY`) — [08](08-compliance-evaluation.md) §5 |
 | `evaluation.batch_size` | 10 | 판정 LLM 호출당 요구사항 수 |
-| `evaluation.grade_reference_map` | (근사 매핑표 JSON) | 타 규격 등급 참고용 — 자동 동등 판정에는 사용 금지 |
+| `evaluation.grade_reference_map` | [{"EN779": "F7", "ISO16890": "ePM1 50–65%", "ASHRAE52_2": "MERV 13"}, {"EN779": "F8", "ISO16890": "ePM1 65–80%", "ASHRAE52_2": "MERV 14"}, {"EN779": "F9", "ISO16890": "ePM1 80% 이상", "ASHRAE52_2": "MERV 15"}] | 타 규격 등급 참고용 근사표 — 근거 서술·질의 문안에만 사용, 자동 동등 판정에는 사용 금지 |
+| `evaluation.verdict_definitions` | §4.2 판정 정의 문구 | `evaluation.judge` 프롬프트의 `verdict_definitions` 변수 |
 | `company.standard_lead_time_days` | null | 표준 납기(일). null이면 납기 판정 “확인 필요” |
 | `fit.weights` | {"product_type": 40, "power_plant": 15, "qualification": 25, "spec_coverage": 20} | 적합도 가중치 |
 | `fit.power_plant_keywords` | [발전, 화력, 복합, 열병합, 지역난방, 가스터빈, GT, CCPP] | |

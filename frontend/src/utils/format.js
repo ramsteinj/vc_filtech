@@ -79,3 +79,18 @@ export function formatKrw(value) {
 export function toLocalInput(value) {
   return value ? String(value).slice(0, 16) : ''
 }
+
+export function isPast(value) {
+  return Boolean(value) && new Date(value) < new Date()
+}
+
+// "D-3" before the deadline, "D-day", or "마감 n일 경과".
+export function dDay(value) {
+  if (!value) return ''
+  const day = 24 * 60 * 60 * 1000
+  const start = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const diff = Math.round((start(new Date(value)) - start(new Date())) / day)
+  if (diff > 0) return `D-${diff}`
+  if (diff === 0) return 'D-day'
+  return `마감 ${-diff}일 경과`
+}

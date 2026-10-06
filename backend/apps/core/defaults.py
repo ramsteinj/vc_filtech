@@ -1,11 +1,17 @@
 """Seed defaults for AppSetting (specs/07-llm-integration.md §6).
 
 Only keys whose default value is fully specified in the spec are listed here.
-`evaluation.nominal_dimension_map`, `evaluation.grade_reference_map` and
-`report.disclaimer` are added in the phase that uses them.
+`report.disclaimer` is added in the phase that uses it.
 """
 
 from typing import NamedTuple
+
+# specs/07 §4.2
+VERDICT_DEFINITIONS = """MET(충족): 회사 자료(사양서/성적서/인증서/실적)에 요구사항을 만족함을 직접 입증하는 근거가 있고 유효함.
+NEEDS_SUPPLEMENT(보완 필요): 회사가 대응 가능성은 있으나 증빙·사양·유효기간·시험규격이 부족하거나 다름
+  (예: 인증 만료, 다른 규격 성적서만 보유, 주문제작 옵션, 시험 추가 필요, 요구 미달로 사양 변경 필요).
+NEEDS_CONFIRMATION(확인 필요): 공고 요구가 모호하거나 회사 자료가 없어 판단 불가 → 발주처 질의 또는 내부 확인 필요.
+규칙 엔진 결과(rule_result.verdict)가 있으면 그 판정을 바꾸지 말고 근거 서술과 답변만 작성합니다."""
 
 
 class SettingDefault(NamedTuple):
@@ -61,6 +67,18 @@ APP_SETTING_DEFAULTS: dict[str, SettingDefault] = {
         },
         "json",
         "인치 공칭치수 ↔ 실제 mm (필터 업계 표준 공칭치수)",
+    ),
+    "evaluation.grade_reference_map": SettingDefault(
+        [
+            {"EN779": "F7", "ISO16890": "ePM1 50–65%", "ASHRAE52_2": "MERV 13"},
+            {"EN779": "F8", "ISO16890": "ePM1 65–80%", "ASHRAE52_2": "MERV 14"},
+            {"EN779": "F9", "ISO16890": "ePM1 80% 이상", "ASHRAE52_2": "MERV 15"},
+        ],
+        "json",
+        "타 규격 등급 참고용 근사표 — 근거 서술·질의 문안에만 사용 (자동 동등 판정 금지)",
+    ),
+    "evaluation.verdict_definitions": SettingDefault(
+        VERDICT_DEFINITIONS, "str", "판정 정의 (evaluation.judge 프롬프트 변수)"
     ),
     "evaluation.use_llm": SettingDefault(True, "bool", "false면 규칙 판정만 수행"),
     "evaluation.reference_date_mode": SettingDefault(

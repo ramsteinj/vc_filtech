@@ -168,6 +168,7 @@ class TaskResult:
     input_tokens: int | None
     output_tokens: int | None
     latency_ms: int
+    call_log: LLMCallLog | None = None
 
 
 def _truncate(text: str, limit: int) -> str:
@@ -178,7 +179,7 @@ def _truncate(text: str, limit: int) -> str:
 
 
 def _log(task_key, cfg, template, job, status, *, request_text, response=None, error="", latency):
-    LLMCallLog.objects.create(
+    return LLMCallLog.objects.create(
         task_key=task_key,
         provider=cfg.provider,
         model_id=cfg.model_id,
@@ -275,7 +276,7 @@ def run_task(
         latency = int((time.monotonic() - started) * 1000)
         data, last_error = _parse(response.text, schema)
         if data is not None:
-            _log(
+            call_log = _log(
                 log_key,
                 cfg,
                 template,
@@ -293,6 +294,7 @@ def run_task(
                 input_tokens=response.input_tokens,
                 output_tokens=response.output_tokens,
                 latency_ms=latency,
+                call_log=call_log,
             )
         _log(
             log_key,

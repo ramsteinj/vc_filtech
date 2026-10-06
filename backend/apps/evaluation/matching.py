@@ -13,7 +13,7 @@ from apps.llm.providers import LLMError
 from apps.llm.services import LLMNotConfigured, is_llm_configured, run_task
 
 from . import rules
-from .context import EvaluationContext
+from .context import EvaluationContext, nominal_family
 from .grades import family_of, meets, product_grades, required_grade
 
 logger = logging.getLogger(__name__)
@@ -38,13 +38,6 @@ _AXES = [
 
 def _domains(text: str) -> set[str]:
     return {name for name, pattern in _DOMAINS.items() if re.search(pattern, text or "", re.I)}
-
-
-def _nominal_family(value: float, nominal: dict, tolerance: float) -> str | None:
-    for inch, sizes in nominal.items():
-        if any(abs(value - size) <= tolerance for size in sizes):
-            return inch
-    return None
 
 
 def item_filter_type(item) -> str:
@@ -94,9 +87,9 @@ def score_item_product(
             axis_scores.append(1.0)
         elif abs(actual - target) <= tolerance:
             axis_scores.append(1.0)
-        elif _nominal_family(actual, nominal, tolerance) and _nominal_family(
+        elif nominal_family(actual, nominal, tolerance) and nominal_family(
             actual, nominal, tolerance
-        ) == _nominal_family(target, nominal, tolerance):
+        ) == nominal_family(target, nominal, tolerance):
             axis_scores.append(0.5)
         else:
             axis_scores.append(0.0)

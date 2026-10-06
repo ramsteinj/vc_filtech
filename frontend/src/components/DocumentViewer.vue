@@ -7,6 +7,7 @@ import { errorMessage } from '@/utils/errors'
 
 const props = defineProps({
   document: { type: Object, required: true },
+  initialPage: { type: Number, default: 0 }, // 1-based; 0 = first page
 })
 
 const tab = ref('text')
@@ -23,7 +24,8 @@ async function load() {
   error.value = ''
   try {
     content.value = await getDocumentText(props.document.id)
-    page.value = 0
+    const count = content.value?.pages?.length || 0
+    page.value = props.initialPage > 0 && props.initialPage <= count ? props.initialPage - 1 : 0
   } catch (err) {
     error.value = errorMessage(err)
   }

@@ -71,6 +71,7 @@ EVALUATE_BID : 요구사항마다 ① 증거 수집 → ② 규칙 엔진 → �
 요구사항별 후보 근거:
 - 품목 요구사항 → 품목의 `matched_product`(담당자 변경 가능) + 해당 제품의 TestReport 전부 + 그 제품이 포함된 DeliveryRecord.
 - 공통 요구사항 → Company, Certificate 전부, DeliveryRecord 전부, 문서 목록.
+- 품목이 지정되지 않은 제품 사양 요구사항(치수·형식·등급·효율·차압·풍량·재질·환경·난연)은 공고의 매칭 제품이 하나뿐이면 그 제품을 대상 제품으로 쓴다. 대상 제품이 없으면 규칙은 `매칭 제품 없음`으로 판정한다(DIMENSION·FILTER_TYPE은 NEEDS_SUPPLEMENT(HIGH), 그 외는 LLM 위임).
 - 각 근거는 `{type, id, label, page, quote}` 로 판정에 첨부.
 
 ## 5. 규칙 엔진 (`rules.py`) — 결정적 판정
@@ -114,6 +115,7 @@ EVALUATE_BID : 요구사항마다 ① 증거 수집 → ② 규칙 엔진 → �
 | DELIVERY | Company/Product에 표준 납기 정보(`AppSetting: company.standard_lead_time_days`, 제품별 `extra.lead_time_days`)가 있으면 비교, 없으면 NEEDS_CONFIRMATION(LOW, “생산팀 납기 확인”). |
 | SUBMISSION_DOC | 문서 매핑: 시험성적서/인증서/실적증명 → 해당 자료 보유 시 MET, 미보유 NEEDS_SUPPLEMENT. 회사가 작성·발급하는 서류(납품서, 계약이행계획서, 치수 및 외관검사 성적서, 하자/계약이행증권, 시험·검사계획서) → MET(LOW) + action_items(“납품 시 작성/발급”). |
 | WARRANTY / INSPECTION / OTHER | 규칙 없음 → LLM. 입회시험·국가공인기관 시험 요구는 action_items에 일정/비용 반영. |
+| (자리표시) | `normalized.placeholder=true`인 요구사항(§2 누락 방지) → NEEDS_CONFIRMATION(MEDIUM) + 발주처 질의 문안. |
 
 ## 6. 제품 매칭 & 적합도 (`matching.py`)
 
@@ -158,4 +160,5 @@ for req in bid.requirements:
 ## 8. 수정
 - 담당자 수정은 `verdict, risk_level, company_value, auto_answer, rationale, action_items, clarification_question, evidences` 전부 가능.
 - 수정 시 `is_modified=True`, `modified_by/at`, `EvaluationHistory` 스냅샷.
-- “AI 판정으로 되돌리기” = `ai_verdict/ai_answer` 및 마지막 AI 스냅샷 복원.
+- 자동 판정(규칙/LLM)을 저장할 때도 `EvaluationHistory`에 스냅샷을 남긴다(`changed_by=null`). “AI 판정으로 되돌리기” = 마지막 자동 판정 스냅샷 복원(`is_modified=False`).
+- 판정 재실행 시 `keep_modified=true`(기본)면 수정된 판정은 그대로 두고, false면 덮어쓴다(이전 내용은 이력에 남음).

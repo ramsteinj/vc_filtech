@@ -14,6 +14,12 @@ const routes = [
   },
   { path: '/', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
   {
+    path: '/bids/:id',
+    name: 'bid-detail',
+    component: () => import('@/views/bids/BidDetailView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/account/password',
     name: 'change-password',
     component: () => import('@/views/ChangePasswordView.vue'),

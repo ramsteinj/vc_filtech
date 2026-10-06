@@ -238,7 +238,7 @@ bid(FK), item_no(Char: 품번/순번), name(GT Air Intake Final Filter), spec_te
 | llm_call | FK LLMCallLog null | |
 
 ### EvaluationHistory
-evaluation(FK), snapshot(JSON), changed_by, changed_at — 수정 시마다 기록.
+evaluation(FK), snapshot(JSON: verdict·risk_level·company_value·auto_answer·rationale·action_items·clarification_question·evidences·decided_by), changed_by(null = 자동 판정), changed_at — 자동 판정 저장·담당자 수정·되돌리기마다 기록.
 
 ## 7. drafts
 

@@ -1,6 +1,13 @@
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import AttachmentViewSet, BidItemViewSet, BidRequirementViewSet, BidViewSet
+from .views import (
+    AttachmentViewSet,
+    BidItemViewSet,
+    BidRequirementViewSet,
+    BidViewSet,
+    DashboardSummaryView,
+)
 
 router = SimpleRouter(trailing_slash=False)
 router.register("bids", BidViewSet, basename="bid")
@@ -10,4 +17,7 @@ router.register(
     r"bids/(?P<bid_pk>\d+)/requirements", BidRequirementViewSet, basename="bid-requirement"
 )
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("dashboard/summary", DashboardSummaryView.as_view(), name="dashboard-summary"),
+    *router.urls,
+]

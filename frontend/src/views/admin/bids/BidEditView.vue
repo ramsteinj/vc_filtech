@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { deleteBid, extractBid, getBid, updateBid } from '@/api/bids'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import EntityForm from '@/components/EntityForm.vue'
 import JobProgress from '@/components/JobProgress.vue'
 import { useToastStore } from '@/stores/toast'
@@ -126,7 +127,16 @@ async function unlock(field) {
   }
 }
 
+const confirmExtract = ref(false)
+
+function askExtract() {
+  // Re-extraction replaces unlocked requirements and their verdicts (specs/08 §2).
+  if (bid.value.modified_evaluation_count) confirmExtract.value = true
+  else runExtract()
+}
+
 async function runExtract() {
+  confirmExtract.value = false
   try {
     const res = await extractBid(bidId.value)
     jobId.value = res.job_id
@@ -174,10 +184,13 @@ const fieldLabel = (key) => FIELDS.find((f) => f.key === key)?.label || key
         <span :class="['badge', `bg-${PROCESSING_STATUS_VARIANT[bid.processing_status]}`]">{{
           bid.processing_status_label
         }}</span>
+        <router-link :to="`/bids/${bid.id}`" class="btn btn-sm btn-outline-secondary">
+          담당자 화면
+        </router-link>
         <button
           class="btn btn-sm btn-primary"
-          :disabled="!!jobId || bid.processing_status === 'EXTRACTING'"
-          @click="runExtract"
+          :disabled="!!jobId || ['EXTRACTING', 'EVALUATING'].includes(bid.processing_status)"
+          @click="askExtract"
         >
           <i class="bi bi-magic me-1"></i>추출 실행
         </button>
@@ -252,5 +265,14 @@ const fieldLabel = (key) => FIELDS.find((f) => f.key === key)?.label || key
     </template>
 
     <BidDeleteModal :bid="deleting" @confirm="doDelete" @cancel="deleting = null" />
+    <ConfirmModal
+      :show="confirmExtract"
+      title="다시 추출"
+      :message="`담당자가 수정한 판정 ${bid?.modified_evaluation_count || 0}건이 있습니다.\n잠기지 않은 요구사항은 새로 추출되며, 그 판정도 함께 삭제됩니다. 계속할까요?`"
+      confirm-text="추출 실행"
+      variant="warning"
+      @confirm="runExtract"
+      @cancel="confirmExtract = false"
+    />
   </div>
 </template>

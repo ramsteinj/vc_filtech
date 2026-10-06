@@ -1,17 +1,23 @@
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.core.jobs import enqueue
-from apps.core.permissions import IsAdminRole, ReadAnyWriteAdmin
+from apps.core.permissions import IsAdminRole, IsBidManagerOrAdmin, ReadAnyWriteAdmin
 from apps.core.serializers import JobSerializer
 from apps.documents.models import MetadataSchema
 from apps.documents.validators import UploadRejected, validate_upload
+from apps.evaluation.comparison import comparison
+from apps.evaluation.evidence import evidence_document_map
+from apps.evaluation.models import RequirementEvaluation
+from apps.evaluation.serializers import EvaluationSerializer
+from apps.evaluation.service import verdict_counts
 from apps.llm.services import ensure_llm_configured
 
 from .models import BidAttachment, BidItem, BidNotice, BidRequirement
@@ -22,6 +28,7 @@ from .serializers import (
     BidListSerializer,
     BidRequirementSerializer,
     BidUpdateSerializer,
+    RequirementWithEvaluationSerializer,
 )
 from .services import add_attachment, ensure_primary, set_primary
 
@@ -91,9 +98,9 @@ class BidViewSet(viewsets.ModelViewSet):
         if params.get("fit_min"):
             qs = qs.filter(fit_score__gte=int(params["fit_min"]))
         now = timezone.now()
-        if params.get("closing") == "open":
+        if params.get("closing") in ("before", "open"):  # 마감 전
             qs = qs.filter(Q(bid_close_at__gte=now) | Q(bid_close_at__isnull=True))
-        elif params.get("closing") == "closed":
+        elif params.get("closing") in ("after", "closed"):  # 마감 후
             qs = qs.filter(bid_close_at__lt=now)
         if params.get("q"):
             q = params["q"]
@@ -103,7 +110,30 @@ class BidViewSet(viewsets.ModelViewSet):
                 | Q(buyer_org__icontains=q)
                 | Q(source_ref__icontains=q)
             )
-        return qs.order_by(ORDERING.get(params.get("ordering", ""), "-created_at"), "-id")
+        ordering = params.get("ordering", "")
+        if ordering in ORDERING:
+            return qs.order_by(ORDERING[ordering], "-id")
+        # Default (specs/05 §2.2): unreviewed first, then the nearest open deadline,
+        # then closed notices from the most recent.
+        return qs.annotate(
+            review_rank=Case(
+                When(review_status=BidNotice.ReviewStatus.UNREVIEWED, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+            closed_rank=Case(
+                When(bid_close_at__lt=now, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+            open_close=Case(When(bid_close_at__gte=now, then=F("bid_close_at"))),
+        ).order_by(
+            "review_rank",
+            "closed_rank",
+            F("open_close").asc(nulls_last=True),
+            F("bid_close_at").desc(nulls_last=True),
+            "-id",
+        )
 
     def create(self, request):
         source_text = (request.data.get("source_text") or "").strip()
@@ -166,6 +196,78 @@ class BidViewSet(viewsets.ModelViewSet):
         return Response(
             {"job_id": job.pk, "job": JobSerializer(job).data}, status=status.HTTP_202_ACCEPTED
         )
+
+    @action(detail=True, methods=["post"], permission_classes=[IsBidManagerOrAdmin])
+    def evaluate(self, request, pk=None):
+        bid = self.get_object()
+        ensure_llm_configured()
+        if bid.processing_status in (
+            BidNotice.ProcessingStatus.EXTRACTING,
+            BidNotice.ProcessingStatus.EVALUATING,
+        ):
+            raise ValidationError({"detail": ["추출 또는 판정이 진행 중입니다."]})
+        if not bid.requirements.exists():
+            raise ValidationError(
+                {"detail": ["판정할 요구사항이 없습니다. 먼저 공고를 추출하세요."]}
+            )
+        ids = request.data.get("requirement_ids") or []
+        if not isinstance(ids, list) or not all(isinstance(i, int) for i in ids):
+            raise ValidationError({"requirement_ids": ["요구사항 id 목록이어야 합니다."]})
+        payload = {"keep_modified": request.data.get("keep_modified", True) is not False}
+        if ids:
+            payload["requirement_ids"] = ids
+        job = enqueue("EVALUATE_BID", target=bid, payload=payload, user=request.user)
+        return Response(
+            {"job_id": job.pk, "job": JobSerializer(job).data}, status=status.HTTP_202_ACCEPTED
+        )
+
+    @action(detail=True, methods=["get"], permission_classes=[IsBidManagerOrAdmin])
+    def evaluations(self, request, pk=None):
+        bid = self.get_object()
+        evaluations = RequirementEvaluation.objects.filter(requirement__bid=bid).select_related(
+            "modified_by"
+        )
+        return Response(
+            {
+                "summary": verdict_counts(bid),
+                "results": EvaluationSerializer(
+                    evaluations,
+                    many=True,
+                    context={"doc_map": evidence_document_map(e.evidences for e in evaluations)},
+                ).data,
+            }
+        )
+
+    @action(detail=True, methods=["post"], permission_classes=[IsBidManagerOrAdmin])
+    def review(self, request, pk=None):
+        bid = self.get_object()
+        reviewed = request.data.get("reviewed")
+        if not isinstance(reviewed, bool):
+            raise ValidationError({"reviewed": ["true 또는 false여야 합니다."]})
+        bid.review_status = (
+            BidNotice.ReviewStatus.REVIEWED if reviewed else BidNotice.ReviewStatus.UNREVIEWED
+        )
+        bid.reviewed_by = request.user if reviewed else None
+        bid.reviewed_at = timezone.now() if reviewed else None
+        bid.save(update_fields=["review_status", "reviewed_by", "reviewed_at", "updated_at"])
+        return Response(BidDetailSerializer(self.get_queryset().get(pk=bid.pk)).data)
+
+    @action(detail=True, methods=["get"], permission_classes=[IsBidManagerOrAdmin])
+    def comparison(self, request, pk=None):
+        return Response(comparison(self.get_object()))
+
+
+class DashboardSummaryView(APIView):
+    """GET /dashboard/summary — counts over all bids, regardless of list filters."""
+
+    permission_classes = [IsBidManagerOrAdmin]
+
+    def get(self, request):
+        counts = BidNotice.objects.aggregate(
+            total=Count("id"),
+            reviewed=Count("id", filter=Q(review_status=BidNotice.ReviewStatus.REVIEWED)),
+        )
+        return Response({**counts, "unreviewed": counts["total"] - counts["reviewed"]})
 
 
 class BidChildMixin:
@@ -264,8 +366,24 @@ class BidRequirementViewSet(BidChildMixin, viewsets.ModelViewSet):
         qs = BidRequirement.objects.filter(bid_id=self.kwargs["bid_pk"]).select_related(
             "item", "source_attachment__document"
         )
+        if self.request.query_params.get("include") == "evaluation":
+            qs = qs.select_related("evaluation__modified_by")
         category = self.request.query_params.get("category")
         return qs.filter(category=category) if category else qs
+
+    def get_serializer_class(self):
+        if self.request.query_params.get("include") == "evaluation":
+            return RequirementWithEvaluationSerializer
+        return BidRequirementSerializer
+
+    def list(self, request, *args, **kwargs):
+        requirements = list(self.get_queryset())
+        context = self.get_serializer_context()
+        if request.query_params.get("include") == "evaluation":
+            evaluations = [getattr(r, "evaluation", None) for r in requirements]
+            context["doc_map"] = evidence_document_map(e.evidences for e in evaluations if e)
+        serializer = self.get_serializer_class()(requirements, many=True, context=context)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         bid = self.get_bid()

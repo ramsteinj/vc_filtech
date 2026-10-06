@@ -17,6 +17,7 @@ FAMILY_LABELS = {
     "EN1822": "EN 1822",
     "EN779": "EN 779",
     "ASHRAE52_2": "ASHRAE 52.2 (MERV)",
+    "ASHRAE52_1": "ASHRAE 52.1",
 }
 
 _FAMILY_HINTS = [
@@ -24,7 +25,8 @@ _FAMILY_HINTS = [
     (r"29461", "ISO29461"),
     (r"1822|HEPA|ULPA|EPA", "EN1822"),
     (r"779", "EN779"),
-    (r"52\.?2|MERV", "ASHRAE52_2"),
+    (r"52[._ ]?2|MERV", "ASHRAE52_2"),
+    (r"52[._ ]?1|arrestance", "ASHRAE52_1"),
 ]
 
 

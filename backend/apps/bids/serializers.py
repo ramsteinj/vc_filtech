@@ -1,6 +1,9 @@
 from rest_framework import serializers
 
 from apps.company.models import Product
+from apps.evaluation.context import reference_date
+from apps.evaluation.models import RequirementEvaluation
+from apps.evaluation.serializers import EvaluationSerializer
 
 from .models import (
     BidAttachment,
@@ -47,6 +50,7 @@ class BidListSerializer(serializers.ModelSerializer):
     requirement_count = serializers.IntegerField(read_only=True)
     attachment_count = serializers.IntegerField(read_only=True)
     matched_models = serializers.SerializerMethodField()
+    verdict_counts = serializers.SerializerMethodField()
 
     class Meta:
         model = BidNotice
@@ -70,8 +74,12 @@ class BidListSerializer(serializers.ModelSerializer):
             "requirement_count",
             "attachment_count",
             "matched_models",
+            "verdict_counts",
             "created_at",
         ]
+
+    def get_verdict_counts(self, obj) -> dict:
+        return (obj.extra or {}).get("verdict_counts") or {}
 
     def get_matched_models(self, obj) -> list[str]:
         models = {
@@ -123,6 +131,9 @@ class BidDetailSerializer(BidListSerializer):
     locked_fields = serializers.ListField(read_only=True)
     fit_breakdown = serializers.SerializerMethodField()
     placeholders = serializers.SerializerMethodField()
+    reviewed_by_name = serializers.SerializerMethodField()
+    reference = serializers.SerializerMethodField()
+    modified_evaluation_count = serializers.SerializerMethodField()
 
     class Meta(BidListSerializer.Meta):
         fields = [
@@ -133,6 +144,9 @@ class BidDetailSerializer(BidListSerializer):
             "placeholders",
             "processing_error",
             "reviewed_at",
+            "reviewed_by_name",
+            "reference",
+            "modified_evaluation_count",
             "source_text",
             "attachments",
             "locked_fields",
@@ -144,6 +158,18 @@ class BidDetailSerializer(BidListSerializer):
 
     def get_placeholders(self, obj) -> list:
         return (obj.extra or {}).get("placeholders") or []
+
+    def get_reviewed_by_name(self, obj) -> str | None:
+        user = obj.reviewed_by
+        return (user.display_name or user.username) if user else None
+
+    def get_reference(self, obj) -> dict:
+        """판정 기준일 (specs/08 §5) — is_simulation shows the 'past notice' badge."""
+        ref, simulation = reference_date(obj)
+        return {"date": str(ref), "is_simulation": simulation}
+
+    def get_modified_evaluation_count(self, obj) -> int:
+        return RequirementEvaluation.objects.filter(requirement__bid=obj, is_modified=True).count()
 
 
 class BidUpdateSerializer(serializers.ModelSerializer):
@@ -264,3 +290,20 @@ class BidRequirementSerializer(serializers.ModelSerializer):
         if attachment is not None and attachment.bid_id != bid.pk:
             raise serializers.ValidationError({"source_attachment": ["이 공고의 첨부가 아닙니다."]})
         return attrs
+
+
+class RequirementWithEvaluationSerializer(BidRequirementSerializer):
+    """`?include=evaluation` (specs/10)."""
+
+    evaluation = serializers.SerializerMethodField()
+
+    class Meta(BidRequirementSerializer.Meta):
+        fields = [*BidRequirementSerializer.Meta.fields, "evaluation"]
+
+    def get_evaluation(self, obj) -> dict | None:
+        evaluation = getattr(obj, "evaluation", None)
+        if evaluation is None:
+            return None
+        return EvaluationSerializer(
+            evaluation, context={"doc_map": self.context.get("doc_map")}
+        ).data

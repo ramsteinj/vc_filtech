@@ -158,6 +158,15 @@ async function reset(setting) {
                 rows="4"
                 spellcheck="false"
               ></textarea>
+              <textarea
+                v-else-if="
+                  setting.value_type === 'str' && String(setting.value ?? '').includes('\n')
+                "
+                :id="`s-${setting.key}`"
+                v-model="edits[setting.key]"
+                class="form-control form-control-sm"
+                rows="6"
+              ></textarea>
               <input
                 v-else
                 :id="`s-${setting.key}`"

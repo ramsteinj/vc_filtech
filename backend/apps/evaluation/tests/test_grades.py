@@ -41,4 +41,5 @@ def test_required_grade_and_family():
     assert required_grade({"standard": "EN1822", "class": "E 11"}).label == "E11"
     assert required_grade({}) is None
     assert family_of("ASHRAE 52.2") == "ASHRAE52_2"
+    assert family_of("ASHRAE52_2") == "ASHRAE52_2"  # normalized code
     assert family_of("EN 779:2012") == "EN779"

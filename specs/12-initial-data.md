@@ -101,7 +101,7 @@ bid_sample/
 | R4 | EN779 F9 이상 | MET | MEDIUM | AFT-2017-0730 (폐지 규격, 2017년) |
 | R5 | ASHRAE 52.2 MERV 14 이상 | NEEDS_SUPPLEMENT | MEDIUM | ASHRAE 성적서 없음 |
 | R6 | 초기차압 ≤ 150 Pa @4,250 m³/h (VB500) | MET | LOW | 130 Pa, AFT-2025-0613 |
-| R7 | 초기차압 < 100 Pa @2,990 m³/h (1,760 CFM, VB500) | MET | MEDIUM | 곡선 보간 ≈ 87.8 Pa (성적서 풍량과 상이 → 보간값 명시) |
+| R7 | 초기차압 < 100 Pa @2,990 m³/h (1,760 CFM, VB500) | MET | MEDIUM | 곡선 보간 ≈ 87.9 Pa (성적서 풍량과 상이 → 보간값 명시) |
 | R8 | 최종차압 > 625 Pa | NEEDS_SUPPLEMENT | MEDIUM | 권장 최종 600 Pa |
 | R9 | EN 1822 E11 이상 | MET | LOW | EP700 E12 (AFT-2025-0921) |
 | R10 | 프레임 SUS304 (EP700) | NEEDS_SUPPLEMENT | MEDIUM | 주문제작 옵션, 실적 “SUS304 사양 아님” |
@@ -116,7 +116,7 @@ bid_sample/
 | R19 | 사용 습도 100% (HP900) | NEEDS_SUPPLEMENT | MEDIUM | HP900 최대 90 %RH |
 | R20 | 하자이행증권 제출 | MET | LOW | 회사 발급 서류(action item) |
 
-> R7 계산: VB500 곡선 (2,125 m³/h → 58 Pa, 3,400 → 102) 선형 보간 → 58 + (2,990−2,125)/(3,400−2,125)×44 ≈ 87.8 Pa < 100. trace에 보간식을 기록해야 한다.
+> R7 계산: VB500 곡선 (2,125 m³/h → 58 Pa, 3,400 → 102) 선형 보간 → 58 + (2,990−2,125)/(3,400−2,125)×44 = 87.85 ≈ 87.9 Pa < 100. trace에 보간식을 기록해야 한다.
 
 ## 5. 파서 테스트
 - `bid_sample/**/*.hwp|hwpx|xls|xlsx` 전부 예외 없이 파싱, 추출 문자 수 > 100(산출내역서 등 소형 문서는 > 50).
