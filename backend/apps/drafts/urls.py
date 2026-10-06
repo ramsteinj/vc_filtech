@@ -7,6 +7,7 @@ from .views import (
     DraftListView,
     DraftPdfView,
     DraftVersionsView,
+    DraftXlsxView,
 )
 
 urlpatterns = [
@@ -23,5 +24,8 @@ urlpatterns = [
         name="draft-versions",
     ),
     path("bids/<int:bid_pk>/drafts/<str:doc_type>/pdf", DraftPdfView.as_view(), name="draft-pdf"),
+    path(
+        "bids/<int:bid_pk>/drafts/<str:doc_type>/xlsx", DraftXlsxView.as_view(), name="draft-xlsx"
+    ),
     path("bids/<int:bid_pk>/report.pdf", BidReportPdfView.as_view(), name="bid-report-pdf"),
 ]

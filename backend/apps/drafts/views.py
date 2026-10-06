@@ -13,7 +13,7 @@ from apps.core.permissions import IsBidManagerOrAdmin
 from apps.core.serializers import JobSerializer
 from apps.evaluation.models import RequirementEvaluation
 
-from . import pdf
+from . import pdf, xlsx
 from .models import DraftDocument, DraftType
 from .serializers import DraftMetaSerializer, DraftSaveSerializer, DraftSerializer
 from .service import DraftContentError, build_content, save_draft
@@ -131,6 +131,24 @@ class DraftPdfView(_DraftBase):
         draft = self.draft(bid, self.doc_type(doc_type), self.version_param(request))
         html = pdf.draft_html(bid, draft.doc_type, draft.content, draft.version)
         return _pdf_response(pdf.render_pdf(html), pdf.filename(bid, draft.doc_type))
+
+
+class DraftXlsxView(_DraftBase):
+    """GET /bids/{id}/drafts/{type}/xlsx[?version=] — Compliance Matrix and checklist only."""
+
+    def get(self, request, bid_pk, doc_type):
+        bid = self.bid(bid_pk)
+        doc_type = self.doc_type(doc_type)
+        if doc_type not in xlsx.XLSX_TYPES:
+            raise NotFound("XLSX는 Compliance Matrix와 입찰 체크리스트만 지원합니다.")
+        draft = self.draft(bid, doc_type, self.version_param(request))
+        response = HttpResponse(
+            xlsx.render_xlsx(bid, doc_type, draft.content), content_type=xlsx.CONTENT_TYPE
+        )
+        response["Content-Disposition"] = pdf.content_disposition(
+            pdf.filename(bid, doc_type, "xlsx")
+        )
+        return response
 
 
 def evaluation_rows(bid) -> list[dict]:

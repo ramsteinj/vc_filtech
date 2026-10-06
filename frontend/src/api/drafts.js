@@ -26,3 +26,11 @@ const pdfRequest = (url, params) =>
 export const downloadDraftPdf = (bidId, type, version) =>
   pdfRequest(`${base(bidId)}/${type}/pdf`, version ? { version } : {})
 export const downloadReportPdf = (bidId) => pdfRequest(`/bids/${bidId}/report.pdf`)
+
+export const XLSX_TYPES = ['COMPLIANCE_MATRIX', 'BID_CHECKLIST']
+export const downloadDraftXlsx = (bidId, type, version) =>
+  client.get(`${base(bidId)}/${type}/xlsx`, {
+    params: version ? { version } : {},
+    responseType: 'blob',
+    timeout: 120000,
+  })

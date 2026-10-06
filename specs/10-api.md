@@ -64,6 +64,7 @@ Prefix `/api`. 권한: 🅰 ADMIN, 🅱 BID_MANAGER 이상(= 로그인 사용자
 | GET/PUT | `/bids/{id}/drafts/{type}` | 🅱 | 최신(또는 `?version=`) 조회 / 저장 |
 | GET | `/bids/{id}/drafts/{type}/versions` | 🅱 | |
 | GET | `/bids/{id}/drafts/{type}/pdf` | 🅱 | PDF |
+| GET | `/bids/{id}/drafts/{type}/xlsx` | 🅱 | XLSX — `COMPLIANCE_MATRIX`, `BID_CHECKLIST`만 ([09](09-drafts-and-reports.md) §6) |
 | GET | `/bids/{id}/report.pdf` | 🅱 | 통합 보고서 |
 
 ## LLM · 설정

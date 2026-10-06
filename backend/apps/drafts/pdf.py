@@ -31,14 +31,14 @@ def css_string(value) -> str:
     return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def filename(bid, kind: str) -> str:
+def filename(bid, kind: str, ext: str = "pdf") -> str:
     stamp = timezone.localdate().strftime("%Y%m%d")
-    return f"{bid.notice_no or bid.pk}_{FILE_LABELS[kind]}_{stamp}.pdf"
+    return f"{bid.notice_no or bid.pk}_{FILE_LABELS[kind]}_{stamp}.{ext}"
 
 
 def content_disposition(name: str) -> str:
     """RFC 5987: ASCII fallback + UTF-8 filename* (specs/09 §5)."""
-    fallback = name.encode("ascii", "ignore").decode() or "document.pdf"
+    fallback = name.encode("ascii", "ignore").decode() or "document"
     return f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{quote(name)}"
 
 

@@ -4,7 +4,15 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { getBid } from '@/api/bids'
-import { DRAFT_TYPES, downloadDraftPdf, draftVersions, getDraft, saveDraft } from '@/api/drafts'
+import {
+  DRAFT_TYPES,
+  downloadDraftPdf,
+  downloadDraftXlsx,
+  draftVersions,
+  getDraft,
+  saveDraft,
+  XLSX_TYPES,
+} from '@/api/drafts'
 import EditableTable from '@/components/EditableTable.vue'
 import { useToastStore } from '@/stores/toast'
 import { saveResponse } from '@/utils/download'
@@ -132,12 +140,13 @@ async function save(status) {
   }
 }
 
-async function pdf() {
+async function download(format) {
   if (dirty.value) await save()
   try {
-    saveResponse(await downloadDraftPdf(bidId.value, type.value, draft.value.version), 'draft.pdf')
+    const request = format === 'xlsx' ? downloadDraftXlsx : downloadDraftPdf
+    saveResponse(await request(bidId.value, type.value, draft.value.version), `draft.${format}`)
   } catch (err) {
-    toast.error(errorMessage(err, 'PDF를 만들지 못했습니다.'))
+    toast.error(errorMessage(err, `${format.toUpperCase()} 파일을 만들지 못했습니다.`))
   }
 }
 
@@ -198,8 +207,16 @@ const newQuestion = () => ({
       >
         {{ draft.status === 'FINAL' ? '초안으로 되돌리기' : '확정' }}
       </button>
-      <button class="btn btn-sm btn-outline-secondary" :disabled="!draft" @click="pdf">
+      <button class="btn btn-sm btn-outline-secondary" :disabled="!draft" @click="download('pdf')">
         <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+      </button>
+      <button
+        v-if="XLSX_TYPES.includes(type)"
+        class="btn btn-sm btn-outline-success"
+        :disabled="!draft"
+        @click="download('xlsx')"
+      >
+        <i class="bi bi-file-earmark-excel me-1"></i>XLSX
       </button>
     </div>
 

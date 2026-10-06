@@ -2,7 +2,14 @@
 // ④ 초안 생성 (specs/05 §3 ④)
 import { onMounted, reactive, ref } from 'vue'
 
-import { DRAFT_TYPES, downloadDraftPdf, generateDraft, listDrafts } from '@/api/drafts'
+import {
+  DRAFT_TYPES,
+  downloadDraftPdf,
+  downloadDraftXlsx,
+  generateDraft,
+  listDrafts,
+  XLSX_TYPES,
+} from '@/api/drafts'
 import JobProgress from '@/components/JobProgress.vue'
 import { useToastStore } from '@/stores/toast'
 import { saveResponse } from '@/utils/download'
@@ -59,12 +66,13 @@ function onDone(type, job) {
   load()
 }
 
-async function pdf(type) {
-  downloading.value = type
+async function download(type, format) {
+  downloading.value = `${type}.${format}`
   try {
-    saveResponse(await downloadDraftPdf(props.bid.id, type), `${type}.pdf`)
+    const request = format === 'xlsx' ? downloadDraftXlsx : downloadDraftPdf
+    saveResponse(await request(props.bid.id, type), `${type}.${format}`)
   } catch (err) {
-    toast.error(errorMessage(err, 'PDF를 만들지 못했습니다.'))
+    toast.error(errorMessage(err, `${format.toUpperCase()} 파일을 만들지 못했습니다.`))
   } finally {
     downloading.value = ''
   }
@@ -135,10 +143,18 @@ async function pdf(type) {
             <button
               v-if="d.latest"
               class="btn btn-sm btn-outline-secondary"
-              :disabled="downloading === d.doc_type"
-              @click="pdf(d.doc_type)"
+              :disabled="downloading === `${d.doc_type}.pdf`"
+              @click="download(d.doc_type, 'pdf')"
             >
               <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+            </button>
+            <button
+              v-if="d.latest && XLSX_TYPES.includes(d.doc_type)"
+              class="btn btn-sm btn-outline-success"
+              :disabled="downloading === `${d.doc_type}.xlsx`"
+              @click="download(d.doc_type, 'xlsx')"
+            >
+              <i class="bi bi-file-earmark-excel me-1"></i>XLSX
             </button>
           </div>
         </div>

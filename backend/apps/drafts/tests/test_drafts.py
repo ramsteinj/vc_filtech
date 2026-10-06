@@ -264,3 +264,42 @@ def test_review_report_with_empty_rationale(bid):
     evaluation.save()
     content, _ = review_report(bid)
     assert any(r.startswith("ISO 14001: 보완 필요") for r in content["key_risks"])
+
+
+def _load_xlsx(response):
+    from io import BytesIO
+
+    from openpyxl import load_workbook
+
+    return load_workbook(BytesIO(b"".join(response))).active
+
+
+def test_xlsx_export(manager_client, bid):
+    cm = generate_draft(bid, "COMPLIANCE_MATRIX")
+    cl = generate_draft(bid, "BID_CHECKLIST")
+    base = f"/api/bids/{bid.pk}/drafts"
+
+    response = manager_client.get(f"{base}/COMPLIANCE_MATRIX/xlsx")
+    assert response.status_code == 200
+    assert response["Content-Type"].startswith("application/vnd.openxmlformats")
+    assert unquote(response["Content-Disposition"].split("UTF-8''")[1]).endswith(".xlsx")
+    ws = _load_xlsx(response)
+    assert ws.title == "Compliance Matrix"
+    header = [c.value for c in ws[5]]
+    assert header[:4] == ["No", "품목", "구분", "요구사항"]
+    rows = list(ws.iter_rows(min_row=6, max_row=5 + len(cm.content["rows"]), values_only=True))
+    assert len(rows) == 6
+    high = next(i for i, r in enumerate(cm.content["rows"]) if r["risk"] == "HIGH")
+    assert ws.cell(row=6 + high, column=1).fill.fgColor.rgb.endswith("DC3545")
+    assert ws.freeze_panes == "A6"
+    assert any("가상 자료 기반" in str(c.value) for row in ws.iter_rows() for c in row if c.value)
+
+    content = cl.content
+    content["sections"][0]["items"][0]["status"] = "DONE"
+    save_draft(cl, content=content)
+    ws = _load_xlsx(manager_client.get(f"{base}/BID_CHECKLIST/xlsx"))
+    first = [c.value for c in ws[4]]
+    assert first[0] == "입찰 참가 자격" and first[1] == "완료"
+
+    assert manager_client.get(f"{base}/TECHNICAL_QUERY/xlsx").status_code == 404
+    assert manager_client.get(f"{base}/COMPLIANCE_MATRIX/xlsx", {"version": 9}).status_code == 404

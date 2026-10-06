@@ -79,4 +79,10 @@
   - `GET /api/bids/{id}/drafts/{type}/pdf` — 개별 초안 최신 버전
   - `GET /api/bids/{id}/report.pdf` — 통합 보고서: 표지 → 검토 보고서 → 요구사항·판정(근거 포함) → Compliance Matrix → 체크리스트 → 기술질의서
 - 파일명: `{notice_no or bid_id}_{문서유형}_{YYYYMMDD}.pdf` (Content-Disposition RFC 5987 UTF-8 인코딩).
-- 선택: Compliance Matrix·체크리스트 XLSX(openpyxl).
+## 6. XLSX 내보내기 (Compliance Matrix · 체크리스트)
+
+- openpyxl. `GET /api/bids/{id}/drafts/{type}/xlsx[?version=]` — `COMPLIANCE_MATRIX`, `BID_CHECKLIST`만 지원(그 외 404). PDF와 같은 초안 JSON(최신 또는 지정 버전)을 사용한다.
+- 파일명: `{notice_no or bid_id}_{문서유형}_{YYYYMMDD}.xlsx` (PDF와 같은 규칙).
+- Compliance Matrix: 시트 1개. 상단에 공고명·공고번호·수요기관·작성자/일자, 이어서 표(No, 품목, 구분, 요구사항, 조항, 제안 사양, 충족 여부, 응답, 근거, 비고). 머리행 고정(freeze), 자동 필터, 줄바꿈, 충족 여부 글자색(충족 #198754, 보완 필요 #fd7e14, 확인 필요 #0d6efd), HIGH 위험 행은 첫 열 빨간 채움.
+- 체크리스트: 시트 1개. 열(섹션, 상태, 항목, 기한, 담당, 판정, 비고), 섹션 순서 유지, 상태는 완료/미완료/해당 없음 한글 표기.
+- 바닥에 `report.disclaimer` 문구 1행.
