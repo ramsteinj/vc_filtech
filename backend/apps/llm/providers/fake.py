@@ -8,11 +8,13 @@ from .base import LLMError, LLMProvider, LLMRequest, LLMResponse
 class FakeProvider(LLMProvider):
     responses: list = []  # str | dict | Exception, consumed in order
     requests: list[LLMRequest] = []
+    responder = None  # optional callable(request) -> str | dict, used when the queue is empty
 
     @classmethod
-    def reset(cls, *responses) -> type["FakeProvider"]:
+    def reset(cls, *responses, responder=None) -> type["FakeProvider"]:
         cls.responses = list(responses)
         cls.requests = []
+        cls.responder = staticmethod(responder) if responder else None
         return cls
 
     def verify(self, model: str) -> None:
@@ -20,9 +22,12 @@ class FakeProvider(LLMProvider):
 
     def generate(self, request: LLMRequest) -> LLMResponse:
         type(self).requests.append(request)
-        if not type(self).responses:
+        if type(self).responses:
+            item = type(self).responses.pop(0)
+        elif type(self).responder is not None:
+            item = type(self).responder(request)
+        else:
             raise LLMError("FakeProvider: 준비된 응답이 없습니다.")
-        item = type(self).responses.pop(0)
         if isinstance(item, Exception):
             raise item
         text = item if isinstance(item, str) else json.dumps(item, ensure_ascii=False)

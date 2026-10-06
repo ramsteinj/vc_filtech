@@ -123,6 +123,23 @@ confidence는 0~1 사이 값입니다.
 - 품목별 요구사항은 item_no에 품번을, 공고 공통 요구사항(자격·서류 등)은 빈 문자열로 둡니다.
 - normalized_json: 비교용 정규화 값을 JSON 문자열로 작성합니다(단위는 Pa, m³/h, mm로 환산하고 raw에 원문 표기).
 - 입찰참가자격은 물품 등록, 직접생산확인, 중소기업확인서, 실적제한(기간·금액·규격) 등으로 분해합니다.
+
+[normalized_json 작성 가이드 — 카테고리별 키]
+- DIMENSION: {"w","h","d","d_max","dia","dia2","len"} (mm, 범위면 d와 d_max), "raw"
+- FILTER_TYPE: {"type": PANEL|POCKET_BAG|V_BANK|MINI_PLEAT_HEPA|CARTRIDGE_PULSE|DEMISTER|CARBON|OTHER}
+- FILTER_GRADE: {"standard": "EN1822"|"ISO16890"|"ISO29461"|"EN779"|"ASHRAE52_2", "class": "E11"|"ePM1 80%"|"T9"|"F9"|"MERV 14", "operator": ">="}
+- EFFICIENCY: {"metric", "operator", "value", "unit": "%", "test_standard"}
+- PRESSURE_DROP: {"metric": "initial_dp"|"final_dp", "operator", "value"(Pa), "at_airflow_m3h", "raw"}
+- AIRFLOW: {"value"(m3/h), "raw"}
+- MATERIAL: {"part": "frame"|"media"|"gasket"|"liner", "required": [...], "forbidden": [...]}
+- ENVIRONMENT: {"max_temp_c", "max_rh"}
+- FIRE_RATING: {"standard", "class"}
+- TEST_STANDARD: {"standard": 위 FILTER_GRADE의 standard 값 중 하나 또는 원문, "lab_requirement"}
+- CERTIFICATION: {"cert_type": "ISO9001"|"ISO14001"|"ISO45001"|"DIRECT_PRODUCTION"|"SME"|"G2B_ITEM"|"KS"|"OTHER", "product_code": 세부품명번호, "required_note": 인증서 필수특이사항 문구}
+- TRACK_RECORD: {"period_years", "min_amount_krw", "single_contract": true|false, "spec_condition": 원문 조건, "product_types": [FILTER_TYPE 값], "grade": {"standard", "class"}, "power_plant_only": true|false}
+- DELIVERY: {"days_after_contract", "partial_allowed", "schedule": [{"label", "days"}]}
+- SUBMISSION_DOC: {"doc", "timing": "입찰 시"|"계약 시"|"납품 시", "issuer_type": "COMPANY"|"LAB"|"AUTHORITY"|"SURETY"}
+- WARRANTY: {"months"}, INSPECTION: {"type", "standard", "samples"}
 - 일시는 ISO 8601(+09:00), 금액은 원 단위 정수입니다.
 - source에는 근거 첨부 파일명, 페이지(없으면 0), 원문 인용을 적습니다.
 - 값이 없는 항목은 빈 문자열(""), 금액·수량은 0으로 둡니다. is_power_plant는 판단 근거가 없으면 false입니다.

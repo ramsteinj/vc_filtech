@@ -9,6 +9,7 @@ const props = defineProps({
   idPrefix: { type: String, default: 'f' },
 })
 
+const INPUT_TYPES = { number: 'number', date: 'date', datetime: 'datetime-local' }
 const texts = reactive({})
 // The parent owns the object; fields are edited in place (the parent passes a fresh copy).
 const model = computed(() => props.modelValue)
@@ -48,7 +49,7 @@ function collect() {
         .filter(Boolean)
     } else if (field.type === 'number') {
       value = value === '' || value === null || value === undefined ? null : Number(value)
-    } else if (field.type === 'date' && !value) {
+    } else if (['date', 'datetime'].includes(field.type) && !value) {
       value = null
     }
     payload[field.key] = value
@@ -134,7 +135,7 @@ defineExpose({ collect })
           :id="`${idPrefix}-${field.key}`"
           v-model="model[field.key]"
           class="form-control form-control-sm"
-          :type="field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'"
+          :type="INPUT_TYPES[field.type] || 'text'"
           :step="field.type === 'number' ? 'any' : undefined"
           :required="field.required"
           :readonly="field.readonly"

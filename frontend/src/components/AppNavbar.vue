@@ -38,6 +38,11 @@ const inCompanySection = computed(() => COMPANY_PATHS.some((p) => route.path.sta
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/admin/bids" active-class="active">
+              입찰 공고
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/admin/users" active-class="active">
               사용자
             </router-link>

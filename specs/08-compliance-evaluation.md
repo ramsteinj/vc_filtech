@@ -126,7 +126,9 @@ EVALUATE_BID : 요구사항마다 ① 증거 수집 → ② 규칙 엔진 → �
 - power_plant(15): 발전소 공고 여부(`fit.power_plant_keywords`, 수요기관명)
 - qualification(25): 자격 요구사항(인증·실적·물품등록) 규칙 사전판정 결과(MET 비율, HIGH 위험 시 0)
 - spec_coverage(20): 회사가 요구 시험규격 성적서를 보유한 비율
-- 규칙 점수 산출 후 `bid.fit_score` 프롬프트로 사유 문장 생성(점수 보정은 ±10 이내만 허용).
+- 해당 요구사항이 공고에 없으면 그 항목은 만점(제한 없음)으로 계산한다(qualification, spec_coverage). 품목이 없으면 product_type은 0점.
+- 규칙 점수 산출 후 `bid.fit_score` 프롬프트로 사유 문장 생성(점수 보정은 ±10 이내만 허용, 범위를 벗어나면 잘라냄). LLM 미설정·실패 시 규칙 점수와 구성 설명만 저장.
+- 구현 순서: 자격 사전판정에 필요한 `grades.py`와 `CERTIFICATION`·`TRACK_RECORD` 규칙, 판정 기준일은 Phase 5(M4)에서 먼저 구현하고, 나머지 카테고리 규칙은 Phase 6(M5)에서 구현한다.
 - 표시 구간: ≥70 높음(녹), 40–69 보통(황), <40 낮음(회).
 
 ## 7. 판정 실행 (`service.py`)

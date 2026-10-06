@@ -68,6 +68,9 @@ const routes = [
       'admin-metadata-schemas',
       () => import('@/views/admin/documents/MetadataSchemaView.vue'),
     ],
+    ['/admin/bids', 'admin-bids', () => import('@/views/admin/bids/BidAdminListView.vue')],
+    ['/admin/bids/new', 'admin-bid-new', () => import('@/views/admin/bids/BidCreateView.vue')],
+    ['/admin/bids/:id/edit', 'admin-bid-edit', () => import('@/views/admin/bids/BidEditView.vue')],
   ].map(([path, name, component]) => ({
     path,
     name,

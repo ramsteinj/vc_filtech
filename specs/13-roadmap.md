@@ -36,11 +36,12 @@
   - ✅ 2026-10-06: Claude Opus 5.5 실제 호출 성공 — 문서 분류, 메타데이터 추출(22필드), 스캔 PDF 전사·추출. 실제 호출에서 Anthropic 구조화 출력 제한 2건(유니온 타입 16개 제한, 스키마 문법 크기 제한)을 발견해 스키마 규칙을 바꿨고([07](07-llm-integration.md) §2), seed 스키마 20종의 실제 API 승인을 확인. OpenAI·Gemini는 키가 없어 FakeProvider·요청 구성 테스트만.
 
 ## M4. 입찰 공고 관리 · 요구사항 추출
-- [ ] BidNotice/BidAttachment/BidItem/BidRequirement, 관리자 등록(파일 다중/텍스트)·수정·삭제
-- [ ] `bid.extract` + 규칙 후처리 + 단위 정규화, 누락 카테고리 자리표시
-- [ ] 제품 매칭 + 적합도
-- [ ] `load_initial_data --only bids` (won/lost)
+- [x] BidNotice/BidAttachment/BidItem/BidRequirement, 관리자 등록(파일 다중/텍스트)·수정·삭제
+- [x] `bid.extract` + 규칙 후처리 + 단위 정규화, 누락 카테고리 자리표시
+- [x] 제품 매칭 + 적합도
+- [x] `load_initial_data --only bids` (won/lost)
 - **완료 기준**: [12](12-initial-data.md) §3.3 기대값 충족(실 LLM 수동 점검 기록), 8건 적재·추출 완료.
+  - 2026-10-06: 20230342721 기대값을 FakeLLM 고정 응답으로 자동 테스트(공고번호 보정·차압 단위 환산·자리표시·매칭·적합도), 8건 적재(LLM 없이) 확인. **실 LLM 수동 점검은 API Key 확보 후 진행 예정.**
 
 ## M5. 판정
 - [ ] grades.py, rules.py, evidence.py, service.py, `evaluation.judge`

@@ -67,3 +67,50 @@ export const FIELD_TYPES = opts({
   grade: '등급',
   json: 'JSON',
 })
+
+export const BID_OUTCOMES = opts({
+  PENDING: '진행 중',
+  WON: '낙찰',
+  LOST: '미낙찰',
+  NOT_BID: '불참',
+})
+
+export const PROCESSING_STATUSES = opts({
+  DRAFT: '등록됨',
+  EXTRACTING: '추출 중',
+  EXTRACTED: '추출 완료',
+  EVALUATING: '판정 중',
+  EVALUATED: '판정 완료',
+  FAILED: '실패',
+})
+
+export const REQUIREMENT_CATEGORIES = opts({
+  DIMENSION: '제품 치수',
+  FILTER_TYPE: '필터 형식',
+  FILTER_GRADE: '필터 등급',
+  EFFICIENCY: '효율',
+  PRESSURE_DROP: '차압',
+  AIRFLOW: '풍량',
+  MATERIAL: '재질',
+  ENVIRONMENT: '사용 환경',
+  FIRE_RATING: '난연',
+  TEST_STANDARD: '시험 규격',
+  CERTIFICATION: '인증·자격',
+  TRACK_RECORD: '납품실적',
+  DELIVERY: '납기',
+  SUBMISSION_DOC: '제출서류',
+  WARRANTY: '하자보증',
+  INSPECTION: '시험·검사',
+  OTHER: '기타',
+})
+
+export const BID_ATTACHMENT_FORMATS = [
+  '.txt',
+  '.docx',
+  '.doc',
+  '.hwp',
+  '.hwpx',
+  '.pdf',
+  '.xls',
+  '.xlsx',
+]

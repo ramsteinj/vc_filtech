@@ -60,3 +60,22 @@ export const CERT_STATUS_VARIANT = {
   EXPIRED: 'danger',
   UNKNOWN: 'secondary',
 }
+
+export const PROCESSING_STATUS_VARIANT = {
+  DRAFT: 'secondary',
+  EXTRACTING: 'info',
+  EXTRACTED: 'primary',
+  EVALUATING: 'info',
+  EVALUATED: 'success',
+  FAILED: 'danger',
+}
+
+export function formatKrw(value) {
+  if (value === null || value === undefined || value === '') return '-'
+  return `${Number(value).toLocaleString('ko-KR')}원`
+}
+
+// API datetimes come in Asia/Seoul (+09:00); <input type="datetime-local"> wants "YYYY-MM-DDTHH:mm".
+export function toLocalInput(value) {
+  return value ? String(value).slice(0, 16) : ''
+}

@@ -24,10 +24,20 @@ def extract_document(job, report):
 
 @job_handler("LOAD_INITIAL_DATA")
 def load_initial_data(job, report):
+    from apps.bids.loader import load_bids
+
     payload = job.payload or {}
-    if payload.get("only") == "bids":
-        raise JobError("입찰 공고 적재는 Phase 5에서 지원됩니다.")
+    only, mode = payload.get("only"), payload.get("mode", "skip")
+    result = {}
     try:
-        return {"company": load_company(mode=payload.get("mode", "skip"), report=report)}
+        if only in (None, "company"):
+            result["company"] = load_company(mode=mode, report=lambda p, m="": report(p // 2, m))
+        if only in (None, "bids"):
+            result["bids"] = load_bids(
+                mode=mode,
+                use_llm=payload.get("use_llm", True),
+                report=lambda p, m="": report(50 + p // 2, m),
+            )
     except FileNotFoundError as exc:
         raise JobError(str(exc)) from exc
+    return result

@@ -31,6 +31,10 @@ def job_handler(job_type: str):
     return decorator
 
 
+def has_handler(job_type: str) -> bool:
+    return job_type in _HANDLERS
+
+
 def enqueue(
     job_type: str,
     *,

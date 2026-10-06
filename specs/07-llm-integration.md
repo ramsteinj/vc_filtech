@@ -128,7 +128,7 @@ NEEDS_CONFIRMATION(확인 필요): 공고 요구가 모호하거나 회사 자�
 | `evaluation.cert_expiring_days` | 90 | 만료 임박 |
 | `evaluation.test_report_max_age_years` | 0 | 성적서 유효기간 제한(0=제한 없음, 공고에 명시 시 공고 우선) |
 | `evaluation.dimension_tolerance_mm` | 3 | 치수 허용오차(공칭치수 592 vs 594 등) |
-| `evaluation.nominal_dimension_map` | {"24": [592, 594, 595, 610], "12": [287, 292, 295, 305], ...} | 인치 공칭치수 ↔ mm |
+| `evaluation.nominal_dimension_map` | {"24": [592, 594, 595, 610], "20": [490, 492, 495, 508], "12": [287, 292, 295, 305], "4": [95, 96, 98, 100, 102], "2": [45, 46, 48, 50], "1": [20, 22, 25]} | 인치 공칭치수 ↔ 실제 mm (필터 업계 표준 공칭치수) |
 | `evaluation.use_llm` | true | false면 규칙 판정만 |
 | `evaluation.reference_date_mode` | `AUTO` | 판정 기준일 (`AUTO`/`BID_CLOSE`/`TODAY`) — [08](08-compliance-evaluation.md) §5 |
 | `evaluation.batch_size` | 10 | 판정 LLM 호출당 요구사항 수 |

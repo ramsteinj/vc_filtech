@@ -2,7 +2,7 @@
 
 발전소(가스터빈 흡기·공조) 입찰 공고 중 (주)필텍 공기필터 제품에 적합한 공고를 찾고, 공고의 핵심 요구사항을 회사 제품 사양·시험성적서·인증·납품실적과 비교해 **충족 / 보완 필요 / 확인 필요**로 판정한 뒤 **Compliance Matrix, 입찰 체크리스트, 발주처 기술질의서, 검토 보고서(PDF)** 초안을 만드는 Web App.
 
-> 현재 상태: **Phase 4(M3 LLM 서비스·프롬프트·튜닝 설정) 완료 (Claude 실제 호출 확인) — 다음: Phase 5(입찰 공고·요구사항 추출)** — 진행 현황은 [specs/13-roadmap.md](specs/13-roadmap.md)
+> 현재 상태: **Phase 5(M4 입찰 공고 관리·요구사항 추출·제품 매칭·적합도) 구현 완료 — 실 LLM 수동 점검 대기, 다음: Phase 6(판정)** — 진행 현황은 [specs/13-roadmap.md](specs/13-roadmap.md)
 
 ## 주요 기능
 
@@ -77,7 +77,8 @@ cd backend
 python3.12 -m venv .venv && source .venv/bin/activate   # 셸의 `python`은 Windows pyenv를 가리키므로 python3.12 사용
 pip install -r requirements.txt
 python manage.py migrate          # 기본 관리자 admin / admin1234! · AppSetting · LLM 모델 기본값 자동 생성
-python manage.py load_initial_data # initial-data/company 적재 (회사 자료 19건, LLM 불필요)
+python manage.py load_initial_data # 회사 자료 19건 + 입찰 공고 샘플 8건 적재 (LLM 설정 시 공고 추출까지 실행)
+#   --only company|bids   한쪽만 적재 · --no-llm  LLM 호출 없이 적재(공고는 '등록됨' 상태로 남음) · --mode update  다시 추출
 python manage.py runserver 8000
 python manage.py run_jobs         # 별도 터미널: 백그라운드 작업 워커 (문서 추출 등)
 
@@ -93,19 +94,14 @@ cd backend && pytest && ruff check . && ruff format --check .
 cd frontend && npm run lint && npm run build
 ```
 
-### 이후 Phase에서 추가되는 명령
-
-| 명령 | Phase |
-|---|---|
-| `python manage.py load_initial_data --only bids` (입찰 공고 샘플 적재) | 5 |
-
 ### 첫 실행
 
 1. http://localhost:5173 접속 → LLM API Key가 없으므로 **관리자 로그인** 화면으로 이동합니다.
 2. `admin` / `admin1234!` 로 로그인 → 바로 **LLM 설정**(API Key 입력) 화면으로 이동합니다.
 3. 제공자(Claude / ChatGPT / Gemini)를 고르고 API Key를 저장하면 연결 테스트가 자동 실행됩니다.
 4. 상단 경고 배너의 안내에 따라 관리자 비밀번호를 변경하고, **사용자** 메뉴에서 입찰담당자를 추가합니다.
-5. **설정 → 프롬프트**에서 문서를 골라 [테스트 실행]으로 LLM 응답을 확인할 수 있습니다. 프롬프트와 **설정 → 튜닝** 값은 모두 DB에 저장되며 즉시 적용됩니다.
+5. **입찰 공고** 메뉴에서 공고를 등록(파일 여러 개 + 본문 붙여넣기)하고 **추출 실행**을 누르면 공고 메타데이터·품목·핵심 요구사항이 추출되고 후보 제품·적합도가 계산됩니다. 수정한 메타데이터·요구사항은 잠겨서 다시 추출해도 유지됩니다. 추출은 `run_jobs` 워커가 처리합니다.
+6. **설정 → 프롬프트**에서 문서를 골라 [테스트 실행]으로 LLM 응답을 확인할 수 있습니다. 프롬프트와 **설정 → 튜닝** 값은 모두 DB에 저장되며 즉시 적용됩니다.
 
 기본 관리자는 `migrate` 시 ADMIN 계정이 하나도 없을 때만 만들어집니다. 수동 실행: `python manage.py ensure_admin`.
 

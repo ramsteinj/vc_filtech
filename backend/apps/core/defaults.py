@@ -50,6 +50,18 @@ APP_SETTING_DEFAULTS: dict[str, SettingDefault] = {
         0, "int", "시험성적서 유효 연수 제한 (0=제한 없음, 공고 명시 시 공고 우선)"
     ),
     "evaluation.dimension_tolerance_mm": SettingDefault(3, "int", "치수 허용오차(mm)"),
+    "evaluation.nominal_dimension_map": SettingDefault(
+        {
+            "24": [592, 594, 595, 610],
+            "20": [490, 492, 495, 508],
+            "12": [287, 292, 295, 305],
+            "4": [95, 96, 98, 100, 102],
+            "2": [45, 46, 48, 50],
+            "1": [20, 22, 25],
+        },
+        "json",
+        "인치 공칭치수 ↔ 실제 mm (필터 업계 표준 공칭치수)",
+    ),
     "evaluation.use_llm": SettingDefault(True, "bool", "false면 규칙 판정만 수행"),
     "evaluation.reference_date_mode": SettingDefault(
         "AUTO", "str", "판정 기준일 (AUTO / BID_CLOSE / TODAY)"

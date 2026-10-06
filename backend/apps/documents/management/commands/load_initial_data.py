@@ -2,6 +2,7 @@ import json
 
 from django.core.management.base import BaseCommand, CommandError
 
+from apps.bids.loader import load_bids
 from apps.documents.loader import load_company
 
 
@@ -12,20 +13,22 @@ class Command(BaseCommand):
         parser.add_argument("--mode", choices=["skip", "update"], default="skip")
         parser.add_argument("--only", choices=["company", "bids"], default=None)
         parser.add_argument(
-            "--no-llm", action="store_true", help="Rule extraction only (no LLM calls)."
+            "--no-llm", action="store_true", help="Rules only; bids stay DRAFT (no LLM calls)."
         )
 
     def handle(self, *args, mode, only, no_llm, **options):
-        if only == "bids":
-            raise CommandError("입찰 공고 적재(--only bids)는 Phase 5에서 지원됩니다.")
+        def report(progress, message=""):
+            self.stdout.write(f"[{progress:3d}%] {message}")
+
+        summary = {}
         try:
-            summary = load_company(
-                mode=mode, report=lambda p, m="": self.stdout.write(f"[{p:3d}%] {m}")
-            )
+            if only in (None, "company"):
+                summary["company"] = load_company(mode=mode, report=report)
+            if only in (None, "bids"):
+                summary["bids"] = load_bids(mode=mode, use_llm=not no_llm, report=report)
         except FileNotFoundError as exc:
             raise CommandError(str(exc)) from exc
-        self.stdout.write(json.dumps({"company": summary}, ensure_ascii=False, indent=2))
-        if only is None:
-            self.stdout.write("입찰 공고(bid_sample) 적재는 Phase 5에서 추가됩니다.")
-        if summary["failed"]:
-            raise CommandError(f"{len(summary['failed'])}개 파일 처리 실패")
+        self.stdout.write(json.dumps(summary, ensure_ascii=False, indent=2))
+        failed = sum(len(part.get("failed", [])) for part in summary.values())
+        if failed:
+            raise CommandError(f"{failed}건 처리 실패")

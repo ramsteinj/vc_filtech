@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "apps.llm",
     "apps.documents",
     "apps.company",
+    "apps.bids",
+    "apps.evaluation",
 ]
 
 MIDDLEWARE = [

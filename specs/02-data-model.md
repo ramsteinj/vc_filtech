@@ -179,19 +179,25 @@ delivered_ym(Char `2023-10` 또는 date), client(발주처), project_name(사업
 | summary | Text | LLM 요약 (3~5줄) |
 | fit_score | Int null | 0–100 |
 | fit_reason | Text | |
-| matched_products | M2M Product (through `BidProductMatch`: score, reason) | |
+| (후보 제품) | `BidProductMatch` 참조 | 품목별 후보 — 아래 표 |
 | outcome | `PENDING`/`WON`/`LOST`/`NOT_BID` | 기본 PENDING |
 | review_status | `UNREVIEWED`/`REVIEWED` | 대시보드 확인/미확인 |
 | reviewed_by, reviewed_at | FK User, DateTime | |
 | processing_status | `DRAFT`/`EXTRACTING`/`EXTRACTED`/`EVALUATING`/`EVALUATED`/`FAILED` | |
+| processing_error | Text, blank | 마지막 추출/판정 실패 사유 (편집 화면에 표시) |
 | source_text | Text, blank | Text 직접 입력 공고 |
-| extra | JSON | 기타 메타데이터 |
+| extra | JSON | 기타 메타데이터. `locked_fields`: 관리자가 수정한 필드 목록(재추출 시 덮어쓰지 않음), `verdict_counts`(판정 요약 캐시), `placeholders`(자리표시로 추가한 카테고리), `fit_breakdown`·`rule_fit_score`(적합도 규칙 내역) 등 |
+| created_by | FK User null | |
+
+### BidProductMatch (품목별 후보 제품, specs/08 §6.1)
+bid(FK CASCADE), item(FK BidItem CASCADE), product(FK Product CASCADE), score(Float 0–1), reason(Text — 점수 구성 설명), rank(Int, 1=최우선). unique(item, product). 품목당 상위 3개 저장, rank 1이 `BidItem.matched_product` 기본값.
 
 ### BidAttachment
 bid(FK CASCADE), document(OneToOne Document), role(=Document.category.code 복사, 표시용), is_primary(공고문 여부), order(Int).
 
 ### BidItem (품목)
-bid(FK), item_no(Char: 품번/순번), name(GT Air Intake Final Filter), spec_text(규격 원문), filter_type(Product.filter_type choices, null), width_mm/height_mm/depth_mm/diameter_mm/diameter2_mm/length_mm (Float null, 범위 허용 시 `depth_mm_max`), quantity(Float), unit(EA/세트/식), material_no(자재번호), notes, source_attachment(FK BidAttachment null), matched_product(FK Product null), match_score(Float null).
+bid(FK), item_no(Char: 품번/순번), name(GT Air Intake Final Filter), spec_text(규격 원문), filter_type(Product.filter_type choices, null), width_mm/height_mm/depth_mm/diameter_mm/diameter2_mm/length_mm (Float null, 범위 허용 시 `depth_mm_max`), quantity(Float), unit(EA/세트/식), material_no(자재번호), notes, source_attachment(FK BidAttachment null), matched_product(FK Product null — 담당자 변경 가능), match_score(Float null), depth_mm_max(Float null).
+- 재추출 시 품목은 `item_no` 기준으로 갱신(같은 품번은 수정, 새 품번은 생성, 사라진 품번은 잠긴 요구사항이 참조하지 않을 때만 삭제).
 
 ### BidRequirement (핵심 요구사항 — 판정 단위)
 | 필드 | 타입 | 설명 |

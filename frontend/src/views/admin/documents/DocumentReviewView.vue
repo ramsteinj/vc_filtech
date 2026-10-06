@@ -41,6 +41,10 @@ const preview = reactive({ loading: false, changes: null, error: '' })
 const applying = ref(false)
 
 const documentId = computed(() => Number(route.params.id))
+// Bid attachments open this view from the bid edit screen (?back=/admin/bids/1/edit?tab=attachments).
+const backLink = computed(() =>
+  String(route.query.back || '').startsWith('/admin/') ? route.query.back : '/admin/documents',
+)
 const schemaOptions = computed(() =>
   schemas.value.filter((s) => s.owner_type === doc.value?.owner_type),
 )
@@ -140,11 +144,11 @@ async function apply() {
 
 <template>
   <div>
-    <CompanyNav />
+    <CompanyNav v-if="doc?.owner_type !== 'BID'" />
     <div v-if="!doc" class="text-center py-5"><span class="spinner-border"></span></div>
     <template v-else>
       <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <router-link to="/admin/documents" class="btn btn-sm btn-outline-secondary">
+        <router-link :to="backLink" class="btn btn-sm btn-outline-secondary">
           <i class="bi bi-arrow-left"></i>
         </router-link>
         <h2 class="h5 mb-0 me-auto">{{ doc.display_name }}</h2>
