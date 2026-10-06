@@ -211,7 +211,7 @@ def merge(requirement, result: rules.RuleResult | None, out: dict | None) -> dic
             "evidences": [quote] if quote else [],
             "auto_answer": template_answer(Verdict.NEEDS_CONFIRMATION, "", rationale, []),
             "decided_by": RequirementEvaluation.DecidedBy.RULE,
-            "rule_trace": {},
+            "rule_trace": {"unjudged": True},  # internal note, not for buyer-facing drafts
         }
     return data
 

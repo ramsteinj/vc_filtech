@@ -20,6 +20,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/bids/:id/drafts/:type',
+    name: 'draft-editor',
+    component: () => import('@/views/bids/DraftEditorView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/account/password',
     name: 'change-password',
     component: () => import('@/views/ChangePasswordView.vue'),
@@ -74,6 +80,8 @@ const routes = [
       'admin-metadata-schemas',
       () => import('@/views/admin/documents/MetadataSchemaView.vue'),
     ],
+    ['/admin/jobs', 'admin-jobs', () => import('@/views/admin/ops/JobsView.vue')],
+    ['/admin/llm-logs', 'admin-llm-logs', () => import('@/views/admin/ops/LLMLogsView.vue')],
     ['/admin/bids', 'admin-bids', () => import('@/views/admin/bids/BidAdminListView.vue')],
     ['/admin/bids/new', 'admin-bid-new', () => import('@/views/admin/bids/BidCreateView.vue')],
     ['/admin/bids/:id/edit', 'admin-bid-edit', () => import('@/views/admin/bids/BidEditView.vue')],

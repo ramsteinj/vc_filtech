@@ -50,7 +50,11 @@ const inCompanySection = computed(() => COMPANY_PATHS.some((p) => route.path.sta
           <li class="nav-item">
             <router-link
               class="nav-link"
-              :class="{ active: route.path.startsWith('/admin/settings') }"
+              :class="{
+                active: ['/admin/settings', '/admin/jobs', '/admin/llm-logs'].some((p) =>
+                  route.path.startsWith(p),
+                ),
+              }"
               to="/admin/settings/llm"
             >
               설정

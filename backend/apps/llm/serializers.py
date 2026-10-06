@@ -187,3 +187,15 @@ class LLMCallLogSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = fields
+
+
+class LLMCallLogListSerializer(LLMCallLogSerializer):
+    """List rows without the (large) prompt/response text — fetched per row on demand."""
+
+    class Meta(LLMCallLogSerializer.Meta):
+        fields = [
+            f
+            for f in LLMCallLogSerializer.Meta.fields
+            if f not in ("request_excerpt", "response_text")
+        ]
+        read_only_fields = fields

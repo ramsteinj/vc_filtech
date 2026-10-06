@@ -243,7 +243,7 @@ evaluation(FK), snapshot(JSON: verdict·risk_level·company_value·auto_answer·
 ## 7. drafts
 
 ### DraftDocument
-bid(FK), doc_type(`COMPLIANCE_MATRIX`/`BID_CHECKLIST`/`TECHNICAL_QUERY`/`REVIEW_REPORT`), title, content(JSON — 유형별 구조, [09](09-drafts-and-reports.md)), status(`DRAFT`/`FINAL`), version(Int), generated_by(`AUTO`/`MANUAL`), is_modified, unique(bid, doc_type, version). 최신 버전 = 최대 version.
+bid(FK), doc_type(`COMPLIANCE_MATRIX`/`BID_CHECKLIST`/`TECHNICAL_QUERY`/`REVIEW_REPORT`), title, content(JSON — 유형별 구조, [09](09-drafts-and-reports.md)), status(`DRAFT`/`FINAL`), version(Int), generated_by(`AUTO`/`MANUAL`), is_modified, used_llm(Bool — LLM 다듬기 반영 여부), created_by/updated_by(FK User null), unique(bid, doc_type, version). 최신 버전 = 최대 version. 재생성은 최신 버전을 덮어쓰되, 담당자가 수정한 버전이거나 `new_version=true`면 새 버전을 만든다.
 
 ## 8. llm
 

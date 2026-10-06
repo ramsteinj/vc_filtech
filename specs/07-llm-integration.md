@@ -137,7 +137,7 @@ NEEDS_CONFIRMATION(확인 필요): 공고 요구가 모호하거나 회사 자�
 | `company.standard_lead_time_days` | null | 표준 납기(일). null이면 납기 판정 “확인 필요” |
 | `fit.weights` | {"product_type": 40, "power_plant": 15, "qualification": 25, "spec_coverage": 20} | 적합도 가중치 |
 | `fit.power_plant_keywords` | [발전, 화력, 복합, 열병합, 지역난방, 가스터빈, GT, CCPP] | |
-| `report.disclaimer` | "본 문서는 시스템이 자동 생성한 초안이며 … (가상 자료 기반)" | 보고서 하단 문구 |
+| `report.disclaimer` | "본 문서는 시스템이 자동 생성한 초안이며 최종 제출 전 담당자 검토가 필요합니다. (가상 자료 기반)" | 보고서·PDF 하단 문구 |
 | `report.company_logo` | null | 보고서 로고 |
 | `jobs.concurrency` | 2 | |
 | `jobs.run_inline` | false | |

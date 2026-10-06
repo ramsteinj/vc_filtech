@@ -85,4 +85,5 @@ Prefix `/api`. 권한: 🅰 ADMIN, 🅱 BID_MANAGER 이상(= 로그인 사용자
 | GET | `/jobs` | 🅰 | 목록 |
 | POST | `/jobs/{id}/retry`, `/jobs/{id}/cancel` | 🅰 | |
 | GET | `/llm-logs` | 🅰 | 필터 `task_key`(부분 일치), `status`, `provider`, `date_from`, `date_to`. 응답에 `summary: {today, month}` (호출 수·입력/출력 토큰 합계) |
+| GET | `/llm-logs/{id}` | 🅰 | 요청 앞부분(`request_excerpt`)·응답 원문(`response_text`) 포함. 목록에는 두 필드를 넣지 않는다(응답 크기). |
 | POST | `/admin/load-initial-data` | 🅰 | `{mode: skip|update}` → `{job_id}` |

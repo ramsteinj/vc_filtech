@@ -195,3 +195,7 @@ def test_llm_logs(admin_client, manager_client, fake_llm):
     assert res.data["summary"]["month"]["input_tokens"] > 0
     assert admin_client.get("/api/llm-logs?status=ERROR").data["count"] == 1
     assert admin_client.get("/api/llm-logs?task_key=classify").data["count"] == 2
+    row = res.data["results"][0]
+    assert "response_text" not in row and "request_excerpt" not in row  # list stays light
+    detail = admin_client.get(f"/api/llm-logs/{row['id']}").data
+    assert "request_excerpt" in detail and "response_text" in detail

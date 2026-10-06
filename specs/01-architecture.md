@@ -52,7 +52,7 @@ vc_filtech/
 │   ├── requirements.txt
 │   ├── pytest.ini
 │   ├── config/                  # settings/{base,dev,test}.py, urls.py, wsgi.py
-│   ├── fonts/NotoSansKR-*.ttf
+│   ├── fonts/NotoSansKR-{Regular,Bold}.otf  # Noto CJK SubsetOTF (SIL OFL 1.1, OFL.txt)
 │   └── apps/
 │       ├── core/                # AppSetting, Job, 공통 유틸, 단위 변환(units.py), 권한
 │       ├── accounts/            # User, 기본 관리자 생성, 인증 API

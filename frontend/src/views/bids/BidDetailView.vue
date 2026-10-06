@@ -4,14 +4,17 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { evaluateBid, getBid, reviewBid } from '@/api/bids'
+import { downloadReportPdf } from '@/api/drafts'
 import BaseModal from '@/components/BaseModal.vue'
 import FitScoreBar from '@/components/FitScoreBar.vue'
 import JobProgress from '@/components/JobProgress.vue'
 import { useToastStore } from '@/stores/toast'
 import { errorMessage } from '@/utils/errors'
+import { saveResponse } from '@/utils/download'
 import { dDay, formatDateTime, formatKrw, PROCESSING_STATUS_VARIANT } from '@/utils/format'
 
 import BidComparisonTab from './BidComparisonTab.vue'
+import BidDraftsTab from './BidDraftsTab.vue'
 import BidEvaluationTab from './BidEvaluationTab.vue'
 import BidOverviewTab from './BidOverviewTab.vue'
 import BidReviewTab from './BidReviewTab.vue'
@@ -31,6 +34,7 @@ const bid = ref(null)
 const jobId = ref(null)
 const refreshKey = ref(0)
 const reviewing = ref(false)
+const downloading = ref(false)
 const rerun = reactive({ show: false, keepModified: true })
 
 const bidId = computed(() => Number(route.params.id))
@@ -76,6 +80,17 @@ async function onJobDone(job) {
   }
   await load()
   refreshKey.value += 1
+}
+
+async function downloadReport() {
+  downloading.value = true
+  try {
+    saveResponse(await downloadReportPdf(bidId.value), 'report.pdf')
+  } catch (err) {
+    toast.error(errorMessage(err, 'PDF를 만들지 못했습니다.'))
+  } finally {
+    downloading.value = false
+  }
 }
 
 async function toggleReview() {
@@ -153,10 +168,12 @@ async function onChanged() {
               </button>
               <button
                 class="btn btn-sm btn-outline-secondary"
-                disabled
-                title="초안 생성 기능과 함께 제공됩니다"
+                :disabled="downloading"
+                title="통합 보고서 PDF (표지·검토 보고서·판정·초안)"
+                @click="downloadReport"
               >
-                <i class="bi bi-file-earmark-pdf me-1"></i>PDF 다운로드
+                <span v-if="downloading" class="spinner-border spinner-border-sm me-1"></span>
+                <i v-else class="bi bi-file-earmark-pdf me-1"></i>PDF 다운로드
               </button>
             </div>
           </div>
@@ -224,18 +241,14 @@ async function onChanged() {
         @evaluate="startEvaluation"
         @changed="onChanged"
       />
-      <div v-else-if="tab === 'drafts'" class="card">
-        <div class="card-body text-center text-muted py-5">
-          <i class="bi bi-file-earmark-text fs-1 d-block mb-2"></i>
-          Compliance Matrix · 입찰 체크리스트 · 기술질의서 · 검토 보고서 초안 생성은 다음 단계에서
-          제공됩니다.
-        </div>
-      </div>
+      <BidDraftsTab v-else-if="tab === 'drafts'" :key="`d${refreshKey}`" :bid="bid" />
       <BidReviewTab
         v-else-if="tab === 'review'"
         :bid="bid"
         :reviewing="reviewing"
+        :downloading="downloading"
         @toggle="toggleReview"
+        @download="downloadReport"
       />
     </template>
 

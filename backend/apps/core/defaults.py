@@ -1,7 +1,6 @@
 """Seed defaults for AppSetting (specs/07-llm-integration.md §6).
 
 Only keys whose default value is fully specified in the spec are listed here.
-`report.disclaimer` is added in the phase that uses it.
 """
 
 from typing import NamedTuple
@@ -94,6 +93,11 @@ APP_SETTING_DEFAULTS: dict[str, SettingDefault] = {
         ["발전", "화력", "복합", "열병합", "지역난방", "가스터빈", "GT", "CCPP"],
         "json",
         "발전소 공고 판별 키워드",
+    ),
+    "report.disclaimer": SettingDefault(
+        "본 문서는 시스템이 자동 생성한 초안이며 최종 제출 전 담당자 검토가 필요합니다. (가상 자료 기반)",
+        "str",
+        "보고서·PDF 하단 문구",
     ),
     "report.company_logo": SettingDefault(None, "str", "보고서 로고"),
     "jobs.concurrency": SettingDefault(2, "int", "백그라운드 작업 동시 실행 수"),

@@ -18,6 +18,7 @@ APP_VERSION = "0.1.0"
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 REPO_DIR = BACKEND_DIR.parent
+FONTS_DIR = BACKEND_DIR / "fonts"  # Noto Sans KR for PDF (specs/09 §5)
 
 load_dotenv(REPO_DIR / ".env")
 
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     "apps.company",
     "apps.bids",
     "apps.evaluation",
+    "apps.drafts",
 ]
 
 MIDDLEWARE = [
@@ -167,4 +169,9 @@ LOGGING = {
         },
     },
     "root": {"handlers": ["console"], "level": "INFO"},
+    # WeasyPrint logs every layout step at INFO; fontTools subsetting is just as chatty.
+    "loggers": {
+        "weasyprint": {"level": "WARNING"},
+        "fontTools": {"level": "WARNING"},
+    },
 }

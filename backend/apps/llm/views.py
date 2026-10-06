@@ -21,6 +21,7 @@ from .prompt_defaults import PROMPTS_BY_KEY
 from .prompts import check_syntax
 from .providers import LLMError
 from .serializers import (
+    LLMCallLogListSerializer,
     LLMCallLogSerializer,
     LLMSettingsSerializer,
     ModelOptionSerializer,
@@ -347,6 +348,9 @@ class LLMCallLogViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = [IsAdminRole]
     serializer_class = LLMCallLogSerializer
+
+    def get_serializer_class(self):
+        return LLMCallLogListSerializer if self.action == "list" else LLMCallLogSerializer
 
     def get_queryset(self):
         qs = LLMCallLog.objects.all()
