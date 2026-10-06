@@ -83,7 +83,7 @@ def test_prompt_test_requires_llm(admin_client):
 
 
 def test_prompt_test_with_variables(admin_client, fake_llm):
-    fake_llm.responses.append({"code": None, "confidence": 0.2, "reason": "모름"})
+    fake_llm.responses.append({"code": "", "confidence": 0.2, "reason": "모름"})
     res = admin_client.post(
         f"{CLASSIFY}/test",
         {
@@ -110,19 +110,15 @@ def test_prompt_test_with_document(admin_client, fake_llm):
     document = Document.objects.create(
         owner_type="COMPANY", file_format="TXT", extracted_text="인증 번호 X-1", category=schema
     )
-    empty = {"value": None, "raw": None, "page": None, "quote": None, "confidence": 0}
-    fake_llm.responses.append(
-        {"fields": {f["key"]: empty for f in schema.fields}, "transcript": None}
-    )
+    fake_llm.responses.append({"fields": [], "transcript": ""})
     res = admin_client.post(
         f"{BASE}/document.extract_metadata/test", {"document_id": document.id}, format="json"
     )
     assert res.data["ok"] is True
     request = fake_llm.requests[0]
     assert "인증 번호 X-1" in request.user
-    assert set(request.json_schema["properties"]["fields"]["properties"]) == {
-        f["key"] for f in schema.fields
-    }
+    item = request.json_schema["properties"]["fields"]["items"]
+    assert set(item["properties"]["key"]["enum"]) == {f["key"] for f in schema.fields}
 
 
 def test_prompt_test_errors(admin_client, fake_llm):
@@ -149,7 +145,7 @@ def test_scanned_document_test_sends_pdf(admin_client, fake_llm):
         owner_type="BID", file_format="PDF", original_filename="s.pdf"
     )
     document.file.save("s.pdf", ContentFile(b"%PDF-1.4"))
-    fake_llm.responses.append({"code": None, "confidence": 0, "reason": "-"})
+    fake_llm.responses.append({"code": "", "confidence": 0, "reason": "-"})
     admin_client.post(f"{CLASSIFY}/test", {"document_id": document.id}, format="json")
     assert fake_llm.requests[0].files[0].data == b"%PDF-1.4"
 
@@ -188,7 +184,7 @@ def test_app_settings_api(admin_client, manager_client):
 
 
 def test_llm_logs(admin_client, manager_client, fake_llm):
-    fake_llm.responses.extend([{"code": None, "confidence": 0, "reason": "-"}, LLMError("x")])
+    fake_llm.responses.extend([{"code": "", "confidence": 0, "reason": "-"}, LLMError("x")])
     variables = {"categories": [], "filename": "a", "text_head": "", "has_file": False}
     admin_client.post(f"{CLASSIFY}/test", {"variables": variables}, format="json")
     admin_client.post(f"{CLASSIFY}/test", {"variables": variables}, format="json")

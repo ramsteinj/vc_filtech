@@ -16,18 +16,20 @@ pytestmark = pytest.mark.django_db
 DATA = Path(settings.INITIAL_DATA_DIR)
 
 
-def field_value(value, confidence=0.9, raw=None):
-    return {"value": value, "raw": raw, "page": 1, "quote": raw, "confidence": confidence}
-
-
-def full_response(code: str, transcript=None, **values) -> dict:
-    """Schema-complete extraction response: every field of the category, null unless given."""
-    fields = MetadataSchema.objects.get(code=code).fields
-    empty = {"value": None, "raw": None, "page": None, "quote": None, "confidence": 0}
+def field_value(key: str, value: str, confidence=0.9, raw=""):
+    """One found field as the model returns it: value is always a string (specs/07 §2)."""
     return {
-        "fields": {f["key"]: values.get(f["key"], empty) for f in fields},
-        "transcript": transcript,
+        "key": key,
+        "value": value,
+        "raw": raw,
+        "page": 1,
+        "quote": raw,
+        "confidence": confidence,
     }
+
+
+def response(*fields, transcript=""):
+    return {"fields": list(fields), "transcript": transcript}
 
 
 def upload(client, name, content: bytes, owner_type="COMPANY", category=None):
@@ -45,7 +47,7 @@ def test_llm_classifies_and_fills_missing_required_field(admin_client, inline_jo
     fake_llm.responses.extend(
         [
             {"code": "certificate", "confidence": 0.92, "reason": "인증서"},
-            {"fields": {"cert_no": field_value("Q-1", raw="인증번호 Q-1")}, "transcript": None},
+            response(field_value("cert_no", "Q-1", raw="인증번호 Q-1")),
         ]
     )
     doc = upload(admin_client, "scan_001.txt", "품질 인증 문서\n인증번호 Q-1".encode())
@@ -53,7 +55,8 @@ def test_llm_classifies_and_fills_missing_required_field(admin_client, inline_jo
     assert doc["status"] == "EXTRACTED"
     # Only the missing required field is requested from the LLM.
     extract_request = fake_llm.requests[1]
-    assert list(extract_request.json_schema["properties"]["fields"]["properties"]) == ["cert_no"]
+    item = extract_request.json_schema["properties"]["fields"]["items"]
+    assert item["properties"]["key"]["enum"] == ["cert_no"]
     row = metadata(doc["id"])["cert_no"]
     assert (row.value, row.source, row.confidence) == ("Q-1", "LLM", 0.9)
 
@@ -63,20 +66,20 @@ def test_category_without_rule_extractor_uses_llm_for_all_fields(
 ):
     schema = MetadataSchema.objects.get(code="company_profile")
     fake_llm.responses.append(
-        full_response(
-            "company_profile",
-            name=field_value("(주)필텍"),
-            is_sme=field_value(True),
-            g2b_items=field_value('[{"code": "4016150501", "name": "공기여과기"}]'),
+        response(
+            field_value("name", "(주)필텍"),
+            field_value("is_sme", "true"),
+            field_value("g2b_items", '[{"code": "4016150501", "name": "공기여과기"}]'),
+            field_value("ceo", ""),
         )
     )
     doc = upload(admin_client, "profile.txt", "(주)필텍 회사 소개".encode(), category=schema.code)
-    requested = fake_llm.requests[0].json_schema["properties"]["fields"]["properties"]
-    assert set(requested) == {f["key"] for f in schema.fields}
+    item = fake_llm.requests[0].json_schema["properties"]["fields"]["items"]
+    assert set(item["properties"]["key"]["enum"]) == {f["key"] for f in schema.fields}
     rows = metadata(doc["id"])
     assert rows["g2b_items"].value == [{"code": "4016150501", "name": "공기여과기"}]
     assert rows["is_sme"].value is True
-    assert "ceo" not in rows  # null values are not stored
+    assert "ceo" not in rows  # empty values are not stored
 
 
 def test_rule_complete_documents_make_no_llm_calls(fake_llm):
@@ -88,11 +91,10 @@ def test_rule_complete_documents_make_no_llm_calls(fake_llm):
 def test_scanned_pdf_is_transcribed_by_pdf_capable_model(admin_client, inline_jobs, fake_llm):
     path = DATA / "bid_sample/won/20210829431/제한경쟁사유서.pdf"
     fake_llm.responses.append(
-        full_response(
-            "bid_restriction_reason",
+        response(
+            field_value("restriction_type", "실적제한"),
+            field_value("track_record_requirement", "최근 10년 F7 이상 GT 필터"),
             transcript="제한경쟁 사유서\n실적제한 ...",
-            restriction_type=field_value("실적제한"),
-            track_record_requirement=field_value("최근 10년 F7 이상 GT 필터"),
         )
     )
     doc = upload(admin_client, path.name, path.read_bytes(), owner_type="BID")

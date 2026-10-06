@@ -82,7 +82,7 @@ Document 생성 (파일 or source_text)
 ## 5. 메타데이터 추출 방식
 
 1. **규칙 추출기(우선)** — 분류별 정규식/표 파서(`apps/documents/extractors/<category>.py`). initial-data 회사 자료(가상 PDF)는 레이아웃이 고정적이므로 **규칙만으로 100% 추출**되어야 한다(LLM 없이도 seed 가능). 예: `성적서 번호\n(AFT-\d{4}-\d{4})`, `외형 치수 \(W×H×D\)\n(.+)`.
-2. **LLM 추출(보완)** — 해당 분류에 규칙 추출기가 없거나, 규칙이 **필수(required) 필드**를 채우지 못했을 때만 호출한다(규칙으로 충분한 문서에 비용을 쓰지 않기 위해). 규칙이 찾지 못한 필드만 `document.extract_metadata` 프롬프트(분류의 fields 정의 → JSON Schema 자동 생성)로 요청한다. 응답 각 필드는 `{value, raw, page, quote, confidence}`. LLM 미설정·호출 실패 시 규칙 결과만 저장하고 문서 안내 문구로 “LLM 단계 보류”를 남긴다.
+2. **LLM 추출(보완)** — 해당 분류에 규칙 추출기가 없거나, 규칙이 **필수(required) 필드**를 채우지 못했을 때만 호출한다(규칙으로 충분한 문서에 비용을 쓰지 않기 위해). 규칙이 찾지 못한 필드만 `document.extract_metadata` 프롬프트(분류의 fields 정의 → JSON Schema 자동 생성)로 요청한다. 응답은 찾은 필드만 담은 배열 `[{key, value, raw, page, quote, confidence}]`(값은 문자열, specs/07 §2). LLM 미설정·호출 실패 시 규칙 결과만 저장하고 문서 안내 문구로 “LLM 단계 보류”를 남긴다.
 3. 병합: `is_locked` 값 > RULE > LLM. 충돌 시 RULE 우선하되 LLM 값은 `extra.alternatives`에 보존.
 4. **단위 정규화** (`apps/core/units.py`) — 저장 시 정규 단위로 변환하고 `raw_value`에 원문 보존:
    - 압력 → Pa: `mmAq`·`mmH2O` ×9.80665, `inH2O`·`in.wg` ×249.089, `kPa` ×1000

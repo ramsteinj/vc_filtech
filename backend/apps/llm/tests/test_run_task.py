@@ -2,12 +2,18 @@ import pytest
 
 from apps.conftest import RAW_KEY
 from apps.core.app_settings import set_setting
+from apps.llm.defaults import SEED_NOTE, seed_prompts
 from apps.llm.models import LLMCallLog, LLMModelOption, LLMSettings, PromptTemplate
 from apps.llm.prompt_defaults import PROMPTS
 from apps.llm.prompts import check_syntax, render
 from apps.llm.providers import LLMError
 from apps.llm.providers.base import FileInput
-from apps.llm.schemas import metadata_output_schema, schema_error
+from apps.llm.schemas import (
+    count_union_types,
+    decode_field_value,
+    metadata_output_schema,
+    schema_error,
+)
 from apps.llm.services import LLMInvalidOutput, LLMNotConfigured, run_task, task_overrides
 
 pytestmark = pytest.mark.django_db
@@ -39,8 +45,8 @@ def test_success_returns_parsed_json_and_logs(fake_llm):
 
 
 def test_code_fence_is_tolerated(fake_llm):
-    fake_llm.responses.append('```json\n{"code": null, "confidence": 0.1, "reason": "x"}\n```')
-    assert run_task("document.classify", CLASSIFY_VARS).data["code"] is None
+    fake_llm.responses.append('```json\n{"code": "", "confidence": 0.1, "reason": "x"}\n```')
+    assert run_task("document.classify", CLASSIFY_VARS).data["code"] == ""
 
 
 def test_invalid_json_is_retried_once(fake_llm):
@@ -146,20 +152,50 @@ def test_seeded_prompts_are_valid(prompt):
     if prompt["output_schema"] is not None:
         assert schema_error(prompt["output_schema"]) is None
         _assert_strict(prompt["output_schema"])
+        # Anthropic rejects schemas with more than 16 union parameters; we use none.
+        assert count_union_types(prompt["output_schema"]) == 0
     template = PromptTemplate.active(prompt["key"])
     assert template.version == 1 and template.is_active
 
 
 def test_metadata_schema_is_strict():
-    schema = metadata_output_schema(
-        [
-            {"key": "cert_no", "type": "str"},
-            {"key": "codes", "type": "list"},
-            {"key": "n", "type": "float"},
-        ]
-    )
-    assert schema_error(schema) is None
-    _assert_strict(schema)
-    fields = schema["properties"]["fields"]["properties"]
-    assert fields["codes"]["properties"]["value"]["type"] == ["string", "null"]  # JSON string
-    assert fields["n"]["properties"]["value"]["type"] == ["number", "null"]
+    from apps.documents.models import MetadataSchema
+
+    for category in MetadataSchema.objects.all():
+        schema = metadata_output_schema(category.fields)
+        assert schema_error(schema) is None
+        _assert_strict(schema)
+        assert count_union_types(schema) == 0, category.code
+
+
+@pytest.mark.parametrize(
+    "field_type,value,expected",
+    [
+        ("str", "FT-VB500", "FT-VB500"),
+        ("str", "", None),
+        ("date", "2025-04-02", "2025-04-02"),
+        ("int", "4250", 4250),
+        ("int", "4250.0", 4250),
+        ("float", "0.71", 0.71),
+        ("bool", "true", True),
+        ("list", '[{"model": "FT-VB500"}]', [{"model": "FT-VB500"}]),
+        ("dimension", '{"w": 592}', {"w": 592}),
+        ("float", "약 130", "약 130"),  # not JSON: kept as text for review
+    ],
+)
+def test_decode_field_value(field_type, value, expected):
+    assert decode_field_value({"type": field_type}, value) == expected
+
+
+def test_untouched_seed_prompts_are_refreshed_but_edited_ones_are_kept():
+    PromptTemplate.objects.filter(key="document.classify").update(user_prompt_template="old seed")
+    edited = PromptTemplate.active("bid.extract")
+    edited.notes = "관리자 수정"
+    edited.user_prompt_template = "admin text"
+    edited.save()
+
+    assert seed_prompts() == 1
+    classify = PromptTemplate.active("document.classify")
+    assert classify.user_prompt_template != "old seed" and classify.notes == SEED_NOTE
+    assert PromptTemplate.active("bid.extract").user_prompt_template == "admin text"
+    assert seed_prompts() == 0

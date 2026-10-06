@@ -102,15 +102,19 @@ def llm_extract(
     )
     values: dict[str, MetaValue] = {}
     by_key = {f["key"]: f for f in fields}
-    for key, item in (data.get("fields") or {}).items():
-        field = by_key.get(key)
-        if field is None or not isinstance(item, dict) or item.get("value") is None:
+    for item in data.get("fields") or []:
+        field = by_key.get(item.get("key")) if isinstance(item, dict) else None
+        if field is None:
+            continue
+        key = field["key"]
+        value = decode_field_value(field, item.get("value"))
+        if value is None:
             continue
         values[key] = MetaValue(
-            value=decode_field_value(field, item["value"]),
+            value=value,
             raw=item.get("raw") or "",
             confidence=float(item.get("confidence") or 0),
-            page=item.get("page"),
+            page=item.get("page") or None,
             quote=item.get("quote") or "",
         )
-    return values, data.get("transcript")
+    return values, data.get("transcript") or None

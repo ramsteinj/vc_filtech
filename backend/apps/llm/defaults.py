@@ -30,17 +30,33 @@ def prompt_fields(default: dict) -> dict:
     }
 
 
+SEED_NOTE = "기본값"
+
+
 def seed_prompts() -> int:
-    existing = set(PromptTemplate.objects.values_list("key", flat=True))
-    created = 0
+    """Create missing prompts; refresh untouched seeds when the defaults change.
+
+    A seed is untouched when its key has only version 1 and the note is still the seed
+    note (specs/07 §4.3). Admin-edited prompts are never modified.
+    """
+    changed = 0
     for default in PROMPTS:
-        if default["key"] in existing:
+        versions = list(PromptTemplate.objects.filter(key=default["key"]))
+        fields = prompt_fields(default)
+        if not versions:
+            PromptTemplate.objects.create(
+                key=default["key"], version=1, is_active=True, notes=SEED_NOTE, **fields
+            )
+            changed += 1
             continue
-        PromptTemplate.objects.create(
-            key=default["key"], version=1, is_active=True, notes="기본값", **prompt_fields(default)
-        )
-        created += 1
-    return created
+        seed = versions[0]
+        untouched = len(versions) == 1 and seed.version == 1 and seed.notes == SEED_NOTE
+        if untouched and any(getattr(seed, k) != v for k, v in fields.items()):
+            for name, value in fields.items():
+                setattr(seed, name, value)
+            seed.save()
+            changed += 1
+    return changed
 
 
 def seed_llm_defaults() -> None:
